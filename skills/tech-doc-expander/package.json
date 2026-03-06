@@ -1,0 +1,29 @@
+{
+  "name": "tech-doc-expander",
+  "version": "1.0.0",
+  "description": "智能技术文档扩展器 - 递归抓取、自动补充、生成落地方案",
+  "type": "module",
+  "main": "scripts/main.ts",
+  "bin": {
+    "tech-doc-expander": "scripts/main.ts"
+  },
+  "scripts": {
+    "start": "bun run scripts/main.ts",
+    "discover": "bun run scripts/main.ts discover"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "bun-types": "latest"
+  },
+  "keywords": [
+    "documentation",
+    "web-scraping",
+    "tech-docs",
+    "claude-skill"
+  ],
+  "author": "",
+  "license": "MIT"
+}
