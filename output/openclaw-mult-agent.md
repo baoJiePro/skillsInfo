@@ -1,5 +1,57 @@
 # OpenClaw 多 Agent 实战：指挥官 + 专业军团模式
 
+> **⚠️ 版本说明**：本文档基于 OpenClaw 2026.3.2 版本编写。当前版本存在一些功能限制，部分自动化特性无法实现。文档中已标注实际可行的替代方案。
+
+> **📅 最后更新**：2026-03-08
+> **🔄 文档状态**：已根据实际测试结果更新
+
+## 0. 重要说明与版本限制
+
+### ⚠️ OpenClaw 功能限制
+
+在当前版本（2026.3.2）中，以下功能**不支持**：
+
+1. **Subagent 自动调用**
+   - ❌ 不支持 `@agent-id` 语法
+   - ❌ 不支持 `subagents.allow` 配置
+   - ❌ Agent 之间无法直接通信
+
+2. **Session 高级配置**
+   - ❌ 不支持 `session.compaction` 配置
+   - ❌ 不支持自定义压缩策略
+
+3. **JSON5 格式**
+   - ❌ 配置文件必须使用标准 JSON
+   - ❌ 不支持注释（`//` 或 `/* */`）
+
+### ✅ 实际可行的方案
+
+虽然无法实现完全自动化的多 Agent 协作，但可以通过以下方式实现类似效果：
+
+1. **角色切换模式**：指挥官以不同角色的视角分析问题
+2. **文档驱动协作**：通过共享工作区实现信息共享
+3. **手动协调**：用户手动触发不同 Agent 的任务
+
+### 📊 架构调整
+
+**原始设计**（理想化）：
+```
+用户 → 指挥官 → 自动调用专业 Agent → 汇总结果 → 用户
+```
+
+**实际实现**（当前可行）：
+```
+用户 → 指挥官（切换不同角色视角） → 生成文档 → 汇总结果 → 用户
+```
+
+### 🔧 相关资源
+
+- **配置分析报告**：[004-openclaw-configuration-analysis.md](./004-openclaw-configuration-analysis.md)
+- **整改报告**：[005-remediation-report.md](./005-remediation-report.md)
+- **维护脚本**：`../scripts/`
+
+---
+
 ## 1. 文章概览
 
 ### 核心主题
@@ -115,6 +167,7 @@ fi
 # 创建共享工作区结构
 echo "📂 创建目录结构..."
 mkdir -p "$WORKSPACES_DIR/commander-grove/docs/workspace/"{tasks,knowledge,archive}
+mkdir -p "$WORKSPACES_DIR/commander-grove/memory"
 
 # 定义 Agent 列表
 AGENTS=(
@@ -134,10 +187,13 @@ AGENTS=(
 for agent in "${AGENTS[@]}"; do
   echo "🔗 配置 $agent..."
   mkdir -p "$WORKSPACES_DIR/$agent/docs"
-  
+
   # 创建符号链接到共享工作区 (强制覆盖)
   ln -sf "$WORKSPACES_DIR/commander-grove/docs/workspace" "$WORKSPACES_DIR/$agent/docs/workspace"
-  
+
+  # 创建符号链接到共享记忆目录 (强制覆盖)
+  ln -sf "$WORKSPACES_DIR/commander-grove/memory" "$WORKSPACES_DIR/$agent/memory"
+
   # 部署 SOUL.md
   if [ -f "$AGENTS_INFO_DIR/${agent}.md" ]; then
     cp "$AGENTS_INFO_DIR/${agent}.md" "$WORKSPACES_DIR/$agent/SOUL.md"
@@ -159,63 +215,214 @@ echo "✅ 初始化完成！"
 
 ### 第二步：配置 OpenClaw
 
-编辑 `~/.openclaw/openclaw.json`，确保包含以下配置。此配置将所有消息默认路由给指挥官，并定义了所有 Agent 的工作区。
+编辑 `~/.openclaw/openclaw.json`，确保包含以下配置。此配置将所有消息路由给指挥官，并定义了所有 Agent 的工作区。
 
-```json5
+**注意**：OpenClaw 使用标准 JSON 格式（不支持注释），请勿使用 JSON5 语法。
+
+```json
 {
-  agents: {
-    defaults: {
-      model: {
-        primary: "zai/glm-5" // 或你使用的其他模型
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "zai/glm-5"
       },
-      maxConcurrent: 4
+      "maxConcurrent": 4
     },
-
-    list: [
-      // ========== 指挥官（用户唯一交互接口）==========
+    "list": [
       {
-        id: "commander-grove",
-        name: "指挥官",
-        default: true,  // 关键：所有消息默认发给指挥官
-        workspace: "~/.openclaw/workspaces/commander-grove",
-        description: "用户唯一交互接口，负责协调专业团队"
+        "id": "commander-grove",
+        "name": "指挥官",
+        "default": true,
+        "workspace": "/Users/baojie/.openclaw/workspaces/commander-grove"
       },
-
-      // ========== 决策层 ==========
-      { id: "ceo-bezos", name: "CEO", workspace: "~/.openclaw/workspaces/ceo-bezos" },
-      { id: "cto-vogels", name: "CTO", workspace: "~/.openclaw/workspaces/cto-vogels" },
-      { id: "fullstack-dhh", name: "FullStack", workspace: "~/.openclaw/workspaces/fullstack-dhh" },
-      { id: "qa-bach", name: "QA", workspace: "~/.openclaw/workspaces/qa-bach" },
-
-      // ========== 产品层 ==========
-      { id: "product-norman", name: "Product", workspace: "~/.openclaw/workspaces/product-norman" },
-      { id: "interaction-cooper", name: "Interaction", workspace: "~/.openclaw/workspaces/interaction-cooper" },
-      { id: "ui-duarte", name: "UI", workspace: "~/.openclaw/workspaces/ui-duarte" },
-
-      // ========== 增长层 ==========
-      { id: "marketing-godin", name: "Marketing", workspace: "~/.openclaw/workspaces/marketing-godin" },
-      { id: "sales-ross", name: "Sales", workspace: "~/.openclaw/workspaces/sales-ross" },
-      { id: "operations-pg", name: "Operations", workspace: "~/.openclaw/workspaces/operations-pg" }
-    ],
+      {
+        "id": "ceo-bezos",
+        "name": "CEO",
+        "workspace": "/Users/baojie/.openclaw/workspaces/ceo-bezos"
+      },
+      {
+        "id": "cto-vogels",
+        "name": "CTO",
+        "workspace": "/Users/baojie/.openclaw/workspaces/cto-vogels"
+      },
+      {
+        "id": "fullstack-dhh",
+        "name": "FullStack",
+        "workspace": "/Users/baojie/.openclaw/workspaces/fullstack-dhh"
+      },
+      {
+        "id": "qa-bach",
+        "name": "QA",
+        "workspace": "/Users/baojie/.openclaw/workspaces/qa-bach"
+      },
+      {
+        "id": "product-norman",
+        "name": "Product",
+        "workspace": "/Users/baojie/.openclaw/workspaces/product-norman"
+      },
+      {
+        "id": "interaction-cooper",
+        "name": "Interaction",
+        "workspace": "/Users/baojie/.openclaw/workspaces/interaction-cooper"
+      },
+      {
+        "id": "ui-duarte",
+        "name": "UI",
+        "workspace": "/Users/baojie/.openclaw/workspaces/ui-duarte"
+      },
+      {
+        "id": "marketing-godin",
+        "name": "Marketing",
+        "workspace": "/Users/baojie/.openclaw/workspaces/marketing-godin"
+      },
+      {
+        "id": "sales-ross",
+        "name": "Sales",
+        "workspace": "/Users/baojie/.openclaw/workspaces/sales-ross"
+      },
+      {
+        "id": "operations-pg",
+        "name": "Operations",
+        "workspace": "/Users/baojie/.openclaw/workspaces/operations-pg"
+      }
+    ]
   },
-
-  // 路由配置：将所有消息强制路由到指挥官
-  bindings: [
+  "bindings": [
     {
-      agentId: "commander-grove",
-      match: {
-        channel: "*" // 匹配所有渠道
+      "agentId": "commander-grove",
+      "match": {
+        "channel": "feishu"
       }
     }
-  ],
+  ]
 }
 ```
 
+**重要说明**：
+1. **路径格式**：使用绝对路径（如 `/Users/baojie/.openclaw/...`），不要使用 `~`
+2. **JSON 格式**：标准 JSON，不支持注释（`//` 或 `/* */`）
+3. **Bindings**：`channel` 需要指定具体渠道名称（如 `"feishu"`），不能使用通配符
+4. **不支持的配置**：OpenClaw 不支持 `description` 字段，已移除
+
 ### 第三步：启动与验证
 
-1.  重启 OpenClaw Gateway (如果正在运行)。
-2.  发送一条测试消息："你好，我想开发一个简单的 Todo App。"
-3.  指挥官应该会回复你，并开始分析任务。
+#### 1. 重启 Gateway
+
+```bash
+# 如果 Gateway 正在运行，先重启
+openclaw gateway restart
+
+# 或者停止后重新启动
+openclaw gateway stop
+openclaw gateway start
+
+# 验证 Gateway 状态
+openclaw gateway status
+```
+
+**预期输出**：
+```
+Gateway: running (pid xxxxx)
+RPC probe: ok
+```
+
+#### 2. 验证配置
+
+```bash
+# 检查工作区目录
+ls -la ~/.openclaw/workspaces/
+
+# 应该看到 11 个目录：commander-grove + 10 个专业 Agent
+```
+
+#### 3. 验证符号链接
+
+```bash
+# 检查 workspace 符号链接
+ls -la ~/.openclaw/workspaces/ceo-bezos/docs/workspace
+
+# 应该显示指向 commander-grove/docs/workspace 的符号链接
+```
+
+**预期输出**：
+```
+lrwxr-xr-x  1 user  staff  XX日期  ~/.openclaw/workspaces/ceo-bezos/docs/workspace -> /Users/baojie/.openclaw/workspaces/commander-grove/docs/workspace
+```
+
+#### 4. 验证 SOUL 文件
+
+```bash
+# 检查 SOUL.md 文件
+ls -l ~/.openclaw/workspaces/*/SOUL.md
+
+# 应该看到 11 个 SOUL.md 文件
+```
+
+#### 5. 测试消息
+
+在飞书中发送测试消息：
+```
+你好，我想开发一个简单的 Todo App。
+```
+
+**预期行为**：
+- 指挥官接收消息
+- 分析任务类型（开发类）
+- 评估复杂度（中等）
+- 创建任务目录
+- 协调专业 Agent（如需要）
+
+#### 6. 故障排查
+
+**问题 1：Gateway 无法启动**
+
+```bash
+# 检查配置文件语法
+cat ~/.openclaw/openclaw.json | python3 -m json.tool
+
+# 查看错误日志
+tail -f /tmp/openclaw/openclaw-$(date +%Y-%m-%d).log
+```
+
+**问题 2：符号链接无效**
+
+```bash
+# 重新运行初始化脚本
+cd ~/Documents/myagents/skillsInfo
+./init-commander.sh
+```
+
+**问题 3：Agent 无响应**
+
+```bash
+# 检查 Agent 配置
+cat ~/.openclaw/openclaw.json | grep -A 5 '"commander-grove"'
+
+# 验证 bindings 配置
+cat ~/.openclaw/openclaw.json | grep -A 10 '"bindings"'
+```
+
+**问题 4：Session 溢出**
+
+```bash
+# 检查 session 大小
+du -sh ~/.openclaw/agents/commander-grove/sessions/
+
+# 如果超过 10MB，清理 session
+cd ~/Documents/myagents/skillsInfo/scripts
+./clean-sessions.sh
+```
+
+**问题 5：Agent 无法访问共享文件**
+
+```bash
+# 验证 memory 符号链接
+ls -la ~/.openclaw/workspaces/ceo-bezos/memory
+
+# 如果不是符号链接，运行同步脚本
+cd ~/Documents/myagents/skillsInfo/scripts
+./sync-memory.sh
+```
 
 ## 4. 深度工作流程解析
 
@@ -235,39 +442,89 @@ echo "✅ 初始化完成！"
 
 ### 场景演练：开发用户认证系统
 
+**重要说明**：由于 OpenClaw 版本限制，当前无法直接实现自动化的 Agent 间调用。以下流程描述了**理想的协作模式**，实际使用时需要**手动协调**或使用**文档驱动协作**。
+
+#### 方案 A：手动协调模式（当前可行）
+
 **1. 用户发起请求**
 > 用户: "帮我开发一个用户认证系统，支持邮箱登录和第三方登录"
 
 **2. 指挥官 (Commander) 响应**
-- 分析需求：开发类任务，中等复杂度。
+- 分析需求：开发类任务，中等复杂度
 - 创建目录：`docs/workspace/tasks/TASK-001-AuthSystem/`
 - 写入 Brief：`docs/workspace/tasks/TASK-001-AuthSystem/brief.md`
-- 规划流程：CEO -> CTO -> FullStack -> QA
-- **回复用户**："收到。已创建任务 TASK-001。正在请求 CEO 进行战略评估..."
-- **内部调用**：@CEO-bezos 请评估 TASK-001-AuthSystem。
+- **回复用户**："收到。我已创建任务 TASK-001。让我分析一下..."
 
-**3. CEO (Specialist) 执行**
-- 读取：`docs/workspace/tasks/TASK-001-AuthSystem/brief.md`
-- 思考：用户价值、优先级。
+**3. 指挥官进行战略评估（模拟 CEO）**
+- 指挥官阅读 `brief.md`
+- 基于 CEO 思维模式分析
 - 写入：`docs/workspace/tasks/TASK-001-AuthSystem/ceo-strategy.md`
-- **回复指挥官**："战略评估完成。这是核心功能，建议推进。"
 
-**4. 指挥官 (Commander) 协调**
-- 读取 CEO 输出。
-- **内部调用**：@CTO-vogels 请基于 CEO 的评估进行技术设计，任务目录同上。
-
-**5. CTO (Specialist) 执行**
-- 读取：`brief.md` 和 `ceo-strategy.md`
-- 思考：架构、安全、扩展性。
+**4. 指挥官进行技术设计（模拟 CTO）**
+- 指挥官阅读 `brief.md` 和 `ceo-strategy.md`
+- 基于 CTO 思维模式设计架构
 - 写入：`docs/workspace/tasks/TASK-001-AuthSystem/cto-design.md`
-- **回复指挥官**："技术设计已完成。推荐使用 JWT + OAuth2。"
 
-... (流程继续，直到 QA 完成) ...
+**5. 指挥官生成实现方案（模拟 FullStack）**
+- 指挥官阅读技术设计
+- 基于 FullStack 思维模式生成代码
+- 写入：`docs/workspace/tasks/TASK-001-AuthSystem/dev-implementation.md`
 
-**6. 指挥官 (Commander) 交付**
-- 读取所有 Agent 的输出文件。
-- 生成最终汇总报告。
-- **回复用户**："任务完成。这是技术方案、代码实现和测试报告的汇总..."
+**6. 指挥官交付结果**
+- 读取所有生成的文档
+- 生成最终汇总报告
+- **回复用户**："任务完成。这是技术方案和实现建议..."
+
+#### 方案 B：文档驱动协作（推荐）
+
+**实际可行的协作流程**：
+
+```
+1. 用户发送需求给指挥官
+   ↓
+2. 指挥官创建任务目录和 brief.md
+   ↓
+3. 指挥官以不同角色的视角分析问题
+   - 读取 brief.md
+   - 基于 CEO 思维：战略评估
+   - 基于 CTO 思维：技术架构
+   - 基于 FullStack 思维：实现方案
+   - 基于 QA 思维：测试策略
+   ↓
+4. 将各角色分析结果写入不同文档
+   - ceo-strategy.md
+   - cto-design.md
+   - dev-implementation.md
+   - qa-strategy.md
+   ↓
+5. 指挥官汇总所有文档
+   ↓
+6. 返回给用户完整报告
+```
+
+**关键点**：
+- ✅ 所有 Agent 都通过**共享工作区**协作
+- ✅ 文档持久化，便于追溯
+- ✅ 指挥官作为统一接口
+- ⚠️  需要**手动切换角色**思维
+- ⚠️  不是真正的**多 Agent 并行**
+
+#### 为什么不能自动化调用？
+
+**OpenClaw 版本限制**：
+1. 不支持 `@agent-id` 语法调用
+2. 不支持 subagent.allow 配置
+3. Agent 之间无法直接通信
+
+**可行的替代方案**：
+- 指挥官使用**角色切换**模式
+- 通过**文档共享**实现协作
+- 用户**手动触发**不同 Agent
+
+**未来改进方向**：
+- 等待 OpenClaw 支持 subagent 功能
+- 使用外部脚本协调 Agent
+- 切换到支持多 Agent 的框架
 
 ## 5. Agent 配置详情
 
@@ -292,15 +549,72 @@ echo "✅ 初始化完成！"
 
 ## 6. 常见问题 (FAQ)
 
+### 配置相关
+
+**Q: 为什么配置文件不支持注释？**
+A: OpenClaw 使用标准 JSON 格式，不支持注释。请使用 `//` 或 `/* */` 的注释会导致配置无效。
+
+**Q: 配置中的 `description` 字段报错？**
+A: OpenClaw 不支持 `description` 字段，请移除该字段。
+
+**Q: bindings 中的 `channel: "*"` 不生效？**
+A: OpenClaw 不支持通配符，需要指定具体渠道名称（如 `"feishu"`）。
+
+### 功能相关
+
+**Q: 为什么无法使用 `@ceo-bezos` 调用 Agent？**
+A: OpenClaw 当前版本不支持 subagent 自动调用。请使用角色切换模式或手动协调。
+
+**Q: 如何实现多 Agent 协作？**
+A: 当前可行的方案：
+1. **角色切换**：指挥官以不同角色视角分析
+2. **文档驱动**：通过共享工作区协作
+3. **手动触发**：用户分别向不同 Agent 发送消息
+
+**Q: 专业 Agent 什么时候会被使用？**
+A: 由于技术限制，专业 Agent 的 SOUL.md 主要作为：
+- 参考文档：指挥官切换角色时使用
+- 未来功能：等待 OpenClaw 支持 subagent
+
+### 维护相关
+
 **Q: 为什么 Agent 找不到文件？**
 A: 请检查符号链接是否正确创建。运行 `ls -l ~/.openclaw/workspaces/cto-vogels/docs/workspace` 应该指向 `commander-grove` 的 workspace。
 
+**Q: Session 溢出怎么办？**
+A: 运行清理脚本：
+```bash
+cd ~/Documents/myagents/skillsInfo/scripts
+./clean-sessions.sh
+```
+
+然后在飞书中发送 `/reset` 或 `/new`。
+
 **Q: 如何添加新的 Specialist？**
-1. 在 `agentsInfo` 创建新的 `.md` 文件。
-2. 定义其 Role 和 Persona。
-3. 添加 "任务协作模式" 章节。
-4. 在 `openclaw.json` 添加配置。
-5. 运行初始化脚本更新工作区。
+1. 在 `agentsInfo` 创建新的 `.md` 文件
+2. 定义其 Role 和 Persona
+3. 添加 "任务协作模式" 章节
+4. 在 `openclaw.json` 的 `agents.list` 中添加配置
+5. 运行 `./init-commander.sh` 更新工作区
 
 **Q: 任务目录越来越大怎么办？**
-A: 指挥官可以将已完成的任务移动到 `docs/workspace/archive/` 目录。
+A: 指挥官可以将已完成的任务移动到 `docs/workspace/archive/` 目录。或者运行：
+```bash
+cd ~/.openclaw/workspaces/commander-grove/docs/workspace/tasks
+mv TASK-XXX-OldTask ../archive/
+```
+
+### 性能相关
+
+**Q: Agent 响应很慢？**
+A: 可能原因：
+1. Session 过大（运行 `clean-sessions.sh`）
+2. Gateway 负载高（检查 `openclaw gateway status`）
+3. 模型响应慢（尝试切换到更快的模型）
+
+**Q: 如何监控系统健康？**
+A: 运行健康检查脚本：
+```bash
+cd ~/Documents/myagents/skillsInfo/scripts
+./health-check.sh
+```
