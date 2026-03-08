@@ -49,7 +49,10 @@
       "Bash(git add \".claude/settings.local.json\" \"output/openclaw-mult-agent.md.bak.20260308-172018\")",
       "Bash(git commit -m \"$\\(cat <<'EOF'\nchore: 更新配置并添加文档备份\n\n- 更新Claude设置允许命令列表\n- 添加openclaw-mult-agent.md备份文件\nEOF\n\\)\")",
       "Bash(git push)",
-      "Bash(git add \".claude/settings.local.json\" \"agentsInfo/\" \"output/openclaw-mult-agent.md\")"
+      "Bash(git add \".claude/settings.local.json\" \"agentsInfo/\" \"output/openclaw-mult-agent.md\")",
+      "Bash(git commit -m \"$\\(cat <<'EOF'\ndocs: 优化Agent配置和文档结构\n\n- 增强所有Agent角色的任务协作模式定义\n- 精简openclaw-mult-agent.md文档内容\n- 更新Claude设置允许命令列表\nEOF\n\\)\")",
+      "Bash(git pull)",
+      "Bash(git add \".claude/settings.local.json\" \"output/openclaw-mult-agent.md\")"
     ]
   }
 }

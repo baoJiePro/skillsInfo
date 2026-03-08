@@ -10,7 +10,7 @@
 
 **单一接口，专业执行**：用户只需要和一个"指挥官"对话，指挥官理解需求后，协调专业 Agent 团队完成工作，最后汇总结果给用户。
 
-## 2. 术语表 
+## 2. 术语表
 
 - **Commander (指挥官)**: 用户交互的唯一入口 Agent，负责任务拆解与分发。
 - **Specialist (专业 Agent)**: 具备特定领域知识（如 CEO, CTO, QA）的 Agent，不直接与用户对话。
@@ -87,15 +87,15 @@
 
 ### 前置条件
 
-1.  已安装 OpenClaw CLI。
-2.  拥有 `agentsInfo/` 目录，其中包含已配置好"任务协作模式"的 Agent SOUL 文件（本文档配套资源已更新）。
+1. 已安装 OpenClaw CLI。
+2. 拥有 `agentsInfo/` 目录，其中包含已配置好"任务协作模式"的 Agent SOUL 文件（本文档配套资源已更新）。
 
 ### 第一步：初始化环境
 
 我们提供了一个脚本来自动创建目录结构、符号链接并部署 Agent 定义文件。
 
-1.  确保你在项目根目录下（包含 `agentsInfo` 文件夹）。
-2.  保存以下脚本为 `init-commander.sh` 并运行。
+1. 确保你在项目根目录下（包含 `agentsInfo` 文件夹）。
+2. 保存以下脚本为 `init-commander.sh` 并运行。
 
 ```bash
 #!/bin/bash
@@ -177,8 +177,7 @@ echo "✅ 初始化完成！"
         id: "commander-grove",
         name: "指挥官",
         default: true,  // 关键：所有消息默认发给指挥官
-        workspace: "~/.openclaw/workspaces/commander-grove",
-        description: "用户唯一交互接口，负责协调专业团队"
+        workspace: "~/.openclaw/workspaces/commander-grove"
       },
 
       // ========== 决策层 ==========
@@ -213,22 +212,23 @@ echo "✅ 初始化完成！"
 
 ### 第三步：启动与验证
 
-1.  重启 OpenClaw Gateway (如果正在运行)。
-2.  发送一条测试消息："你好，我想开发一个简单的 Todo App。"
-3.  指挥官应该会回复你，并开始分析任务。
+1. 重启 OpenClaw Gateway (如果正在运行)。
+2. 发送一条测试消息："你好，我想开发一个简单的 Todo App。"
+3. 指挥官应该会回复你，并开始分析任务。
 
 ## 4. 深度工作流程解析
 
 ### 核心机制：文档驱动协作
 
-为了解决多 Agent 之间上下文丢失和幻觉问题，我们采用**基于文件系统的协作**。
+为了解决多 Agent 之间上下文丢失和幻觉问题，我们采用**基于 文件系统的协作**。
 
-1.  **Commander** 创建任务文件夹 `docs/workspace/tasks/TASK-XXX/`。
-2.  **Commander** 写入 `brief.md`（任务简报）。
-3.  **Specialist Agent** 读取 `brief.md`，执行任务，并将结果写入同一目录下的特定文件（如 `cto-design.md`）。
-4.  **Commander** 读取这些输出文件，整合信息，进行下一步决策。
+1. **Commander** 创建任务文件夹 `docs/workspace/tasks/TASK-XXX/`。
+2. **Commander** 写入 `brief.md`（任务简报）。
+3. **Specialist Agent** 读取 `brief.md`，执行任务，并将结果写入同一目录下的特定文件（如 `cto-design.md`）。
+4. **Commander** 读取这些输出文件，整合信息，进行下一步决策。
 
 这种方式的好处是：
+
 - **持久化**：所有中间思考过程都被保存。
 - **清晰边界**：每个 Agent 知道去哪里读、去哪里写。
 - **无状态依赖**：Agent 不需要记住长对话历史，只需阅读当前文档。
@@ -236,9 +236,11 @@ echo "✅ 初始化完成！"
 ### 场景演练：开发用户认证系统
 
 **1. 用户发起请求**
+
 > 用户: "帮我开发一个用户认证系统，支持邮箱登录和第三方登录"
 
 **2. 指挥官 (Commander) 响应**
+
 - 分析需求：开发类任务，中等复杂度。
 - 创建目录：`docs/workspace/tasks/TASK-001-AuthSystem/`
 - 写入 Brief：`docs/workspace/tasks/TASK-001-AuthSystem/brief.md`
@@ -247,16 +249,19 @@ echo "✅ 初始化完成！"
 - **内部调用**：@CEO-bezos 请评估 TASK-001-AuthSystem。
 
 **3. CEO (Specialist) 执行**
+
 - 读取：`docs/workspace/tasks/TASK-001-AuthSystem/brief.md`
 - 思考：用户价值、优先级。
 - 写入：`docs/workspace/tasks/TASK-001-AuthSystem/ceo-strategy.md`
 - **回复指挥官**："战略评估完成。这是核心功能，建议推进。"
 
 **4. 指挥官 (Commander) 协调**
+
 - 读取 CEO 输出。
 - **内部调用**：@CTO-vogels 请基于 CEO 的评估进行技术设计，任务目录同上。
 
 **5. CTO (Specialist) 执行**
+
 - 读取：`brief.md` 和 `ceo-strategy.md`
 - 思考：架构、安全、扩展性。
 - 写入：`docs/workspace/tasks/TASK-001-AuthSystem/cto-design.md`
@@ -265,6 +270,7 @@ echo "✅ 初始化完成！"
 ... (流程继续，直到 QA 完成) ...
 
 **6. 指挥官 (Commander) 交付**
+
 - 读取所有 Agent 的输出文件。
 - 生成最终汇总报告。
 - **回复用户**："任务完成。这是技术方案、代码实现和测试报告的汇总..."
@@ -296,6 +302,7 @@ echo "✅ 初始化完成！"
 A: 请检查符号链接是否正确创建。运行 `ls -l ~/.openclaw/workspaces/cto-vogels/docs/workspace` 应该指向 `commander-grove` 的 workspace。
 
 **Q: 如何添加新的 Specialist？**
+
 1. 在 `agentsInfo` 创建新的 `.md` 文件。
 2. 定义其 Role 和 Persona。
 3. 添加 "任务协作模式" 章节。
