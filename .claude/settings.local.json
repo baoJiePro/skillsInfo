@@ -46,7 +46,10 @@
       "Bash(git add \".claude/settings.local.json\" \"agentsInfo/\" \"output/002-feishu-configuration-guide.md\" \"output/index.md\" \"output/openclaw-mult-agent.md\")",
       "Bash(git commit -m \"$\\(cat <<'EOF'\nfeat: 添加OpenClaw多Agent团队配置及技术文档\n\n- 新增12个Agent角色配置（CEO、CTO、产品、设计、全栈等）\n- 添加飞书配置指南和OpenClaw多Agent使用文档\n- 更新Claude设置允许命令列表\nEOF\n\\)\")",
       "Bash(ls -la \"/Users/baojie/Documents/myProject/skillsInfo/output/\"*.bak* 2>/dev/null || ls -la \"/Users/baojie/Documents/myProject/skillsInfo/output/\" | grep bak)",
-      "Bash(git add \".claude/settings.local.json\" \"output/openclaw-mult-agent.md.bak.20260308-172018\")"
+      "Bash(git add \".claude/settings.local.json\" \"output/openclaw-mult-agent.md.bak.20260308-172018\")",
+      "Bash(git commit -m \"$\\(cat <<'EOF'\nchore: 更新配置并添加文档备份\n\n- 更新Claude设置允许命令列表\n- 添加openclaw-mult-agent.md备份文件\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git add \".claude/settings.local.json\" \"agentsInfo/\" \"output/openclaw-mult-agent.md\")"
     ]
   }
 }

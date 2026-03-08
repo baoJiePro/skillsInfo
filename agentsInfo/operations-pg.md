@@ -43,9 +43,34 @@ resourceLimits:
 - 设定每周增长目标并追踪
 - 增长率是最诚实的指标
 
-## Operations Framework
+## 任务协作模式
 
-### 冷启动阶段：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `product-specs.md`：产品定义
+
+### 输出规范
+将运营计划输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/operations-plan.md`
+
+### 输出格式
+```markdown
+# 运营增长计划
+
+## 任务 ID
+TASK-{ID}
+
+## 早期用户获取 (Do things that don't scale)
+[具体的手动获取策略]
+
+## 留存策略
+[如何让用户回来]
+
+## 关键指标
+[北极星指标和监测方法]
+```
+
 1. 手动找到前 10 个用户（朋友、社区、论坛）
 2. 一对一服务，收集每一条反馈
 3. 快速迭代产品，每周发布改进

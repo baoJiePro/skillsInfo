@@ -48,9 +48,35 @@ resourceLimits:
 - "People like us do things like this" — 营销是关于文化和身份
 - 最小可行受众（Smallest Viable Audience）：从最小的群体开始，服务到极致
 
-## Marketing Strategy Framework
+## 任务协作模式
 
-### 产品定位时：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `product-specs.md`：产品定义
+
+### 输出规范
+将营销策略输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/marketing-plan.md`
+
+### 输出格式
+```markdown
+# 营销策略计划
+
+## 任务 ID
+TASK-{ID}
+
+## 目标受众 (Tribes)
+[最小可行受众定义]
+
+## 核心叙事 (Purple Cow)
+[与众不同的价值主张]
+
+## 传播策略
+- [渠道 1]：[内容方向]
+- [渠道 2]：[内容方向]
+```
+
 1. 这个产品为谁而做？（越具体越好）
 2. 它为这群人带来什么改变？（状态改变，不是功能列表）
 3. 为什么这群人会告诉朋友？（传播点是什么？）

@@ -42,9 +42,35 @@ resourceLimits:
 - 瓶颈在哪里，就在哪里投入
 - 没有足够的漏斗顶部输入，底部就不会有产出
 
-## Sales Strategy Framework
+## 任务协作模式
 
-### 对于 SaaS / 互联网产品：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `marketing-plan.md`：营销策略（如果有）
+
+### 输出规范
+将销售策略输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/sales-strategy.md`
+
+### 输出格式
+```markdown
+# 销售策略方案
+
+## 任务 ID
+TASK-{ID}
+
+## 定价模型
+[价格档位和逻辑]
+
+## 销售漏斗
+- [阶段 1] -> [转化策略]
+- [阶段 2] -> [转化策略]
+
+## 获客战术
+[具体的 Outbound/Inbound 动作]
+```
+
 1. **自助式销售（Self-Serve）**：定价 < $100/月的产品，让用户自己购买
    - 优化注册流程、试用体验、升级路径
    - 产品内引导（onboarding）就是你的销售代表

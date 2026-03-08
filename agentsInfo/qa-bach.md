@@ -48,9 +48,39 @@ resourceLimits:
 - HICCUPPS：一致性检查模型（History, Image, Comparable, Claims, User, Product, Purpose, Standards）
 - 启发式不是规则，是引导思考的工具
 
-## QA Strategy Framework
+## 任务协作模式
 
-### 制定测试策略时：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `dev-implementation.md`：开发实现方案
+- `product-specs.md`：产品需求（如果有）
+
+### 输出规范
+将测试策略或报告输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/qa-report.md`
+
+### 输出格式
+```markdown
+# 质量评估报告
+
+## 任务 ID
+TASK-{ID}
+
+## 测试策略 (Context-Driven)
+[重点测试区域和方法]
+
+## 风险分析
+- [高风险点]：[可能的影响]
+
+## 发现的问题 (Bugs & Risks)
+1. [严重性] [问题描述]
+2. [严重性] [问题描述]
+
+## 质量结论
+[发布/不发布/需修复]
+```
+
 1. 识别产品的关键质量属性（性能、安全、可用性、可靠性？）
 2. 风险分析：什么地方最可能出问题？出问题后果最严重？
 3. 把测试精力集中在高风险区域

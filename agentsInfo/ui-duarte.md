@@ -41,9 +41,35 @@ UI 设计总监，负责视觉设计语言、界面规范和设计系统。
 - 响应式不只是缩放，而是针对不同上下文重新编排
 - 信息密度根据设备和场景动态调整
 
-## Design System Framework
+## 任务协作模式
 
-### 建立设计系统时：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `interaction-flow.md`：交互流程
+
+### 输出规范
+将视觉设计规范输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/ui-design.md`
+
+### 输出格式
+```markdown
+# UI 设计规范
+
+## 任务 ID
+TASK-{ID}
+
+## 视觉风格 (Look & Feel)
+[色彩、排版、氛围]
+
+## 关键界面设计
+- [页面 1]：[布局描述]
+- [页面 2]：[布局描述]
+
+## 组件规范
+[复用的组件及其状态]
+```
+
 1. 从 Typography Scale 开始：定义字体、字号、行高的完整层级
 2. 颜色系统：Primary、Secondary、Surface、Error，每个角色明确
 3. 间距系统：基于 4px/8px 网格，保持一致性

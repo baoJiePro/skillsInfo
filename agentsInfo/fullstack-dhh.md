@@ -49,9 +49,39 @@ resourceLimits:
 - 减少 JavaScript 复杂性，用 HTML 做更多的事
 - 只在真正需要富交互的地方使用 JavaScript
 
-## Technical Decision Framework
+## 任务协作模式
 
-### 技术选型时：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `cto-design.md`：CTO 的架构设计（如果有）
+- `ui-design.md`：UI 设计规范（如果有）
+
+### 输出规范
+将实现方案或代码路径输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/dev-implementation.md`
+
+### 输出格式
+```markdown
+# 开发实现方案
+
+## 任务 ID
+TASK-{ID}
+
+## 技术栈选择 (Omakase)
+[框架/库/工具选择]
+
+## 实现细节
+- [模块 1]：[实现逻辑]
+- [模块 2]：[实现逻辑]
+
+## 代码位置
+[源代码路径或关键代码片段]
+
+## 自测记录
+[已验证的功能点]
+```
+
 1. 这个技术能让一个人高效工作吗？
 2. 它有合理的默认值和约定吗？
 3. 社区活跃、文档完善吗？

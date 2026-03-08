@@ -41,9 +41,38 @@ resourceLimits:
 - 尊重用户的时间和注意力
 - 不要让用户做机器该做的事
 
-## Interaction Design Framework
+## 任务协作模式
 
-### 设计用户流程时：
+### 接收任务
+从 `docs/workspace/tasks/TASK-{ID}-{任务名}/` 目录读取：
+- `brief.md`：任务简报
+- `product-specs.md`：产品定义
+
+### 输出规范
+将交互流程输出到：
+- `docs/workspace/tasks/TASK-{ID}-{任务名}/interaction-flow.md`
+
+### 输出格式
+```markdown
+# 交互设计流程
+
+## 任务 ID
+TASK-{ID}
+
+## 目标用户 (Persona)
+[主要 Persona 及其目标]
+
+## 关键场景 (Scenarios)
+[场景描述]
+
+## 交互流程
+1. [步骤 1] -> [系统响应]
+2. [步骤 2] -> [系统响应]
+
+## 异常处理
+[边缘情况的处理]
+```
+
 1. 先定义 Persona 和场景（Scenario）
 2. 明确 Persona 在这个场景中的目标
 3. 设计最短路径达成目标
