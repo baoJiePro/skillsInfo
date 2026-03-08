@@ -33,7 +33,17 @@
       "Bash(curl -s \"https://www.aivi.fyi/sitemap.xml\" 2>/dev/null | grep -o 'https://www.aivi.fyi/[^<]*openclaw[^<]*' | head -10 || curl -s \"https://www.aivi.fyi/robots.txt\" 2>/dev/null | grep -i sitemap)",
       "Bash(cd ~/Documents/myProject/skillsInfo/output/OpenClaw-Batch && ls -lah && wc -l *.md)",
       "Bash(cp -r \"/Users/baojie/.claude/skills/tech-doc-expander\" \"/Users/baojie/Documents/myProject/skillsInfo/skills/\")",
-      "Bash(git init && git add -A && git status)"
+      "Bash(git init && git add -A && git status)",
+      "Bash(git commit -m \"$\\(cat <<'EOF'\nfeat: 添加tech-doc-expander智能技术文档扩展器技能\n\n- 添加完整的技能目录结构，包含SKILL.md定义文件\n- 添加8个TypeScript脚本实现（fetcher、analyzer、generator等）\n- 添加npm依赖配置（package.json、package-lock.json）\n- 添加文档模板和安装指南\n- 添加技能索引文档（INDEX.md）\nEOF\n\\)\")",
+      "Bash(git remote add origin https://github.com/baoJiePro/skillsInfo.git && git remote -v)",
+      "Bash(git push -u origin main)",
+      "Bash(curl -s \"https://api.github.com/search/repositories?q=baoyu-url-to-markdown+in:name\" | grep -E '\"full_name\"|\"description\"|\"clone_url\"' | head -10)",
+      "Bash(curl -s \"https://api.github.com/search/repositories?q=baoyu+skills+in:name\" | grep -E '\"full_name\"|\"description\"' | head -20)",
+      "Bash(curl -s \"https://api.github.com/repos/JimLiu/baoyu-skills/contents/\" | grep -E '\"name\"|\"type\"' | head -40)",
+      "Bash(cp -r /tmp/baoyu-skills/skills/baoyu-url-to-markdown \"/Users/baojie/.claude/skills/\")",
+      "mcp__web-search-prime__webSearchPrime",
+      "Skill(zcf:git-commit)",
+      "Bash(git add \".claude/settings.local.json\" \"agentsInfo/\" \"output/002-feishu-configuration-guide.md\" \"output/index.md\" \"output/openclaw-mult-agent.md\")"
     ]
   }
 }
