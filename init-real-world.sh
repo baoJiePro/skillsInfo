@@ -1,63 +1,5 @@
-# OpenClaw 多 Agent 实战：终极部署指南 (v3.2 - Real World)
-
-> **⚠️ 版本说明**：本文档基于 OpenClaw 2026.3.2 版本编写。
-> **🚀 v3.2 适配版**：适配了真实的 11 个专业 Agent (`agentsInfo/*.md`)，并引入 `Liaison` 作为非阻塞交互入口。此版本整合了 **Persona (角色)** 与 **Protocol (协议)**。
-
-> **📅 最后更新**：2026-03-09
-> **🔄 文档状态**：已适配真实环境
-
----
-
-## 0. 架构全景图 (Real World)
-
-在您的真实环境中，我们将建立一个由 `Liaison` 领衔，11 位专业 Agent (`agentsInfo/*`) 支持的异步协作网络。
-
-*   **前端 (Liaison)**：新增的轻量级 Agent，负责"接单"和"快速反馈"。
-*   **中间件 (FS-Bus)**：`inbox` / `outbox` 消息队列。
-*   **后台 (Specialists)**：您的 11 位专家 (Bezos, Vogels, DHH, etc.)，通过 CLI 被唤起。
-*   **调度器 (Watcher)**：负责将任务分发给正确的专家。
-
-```
-用户 (IM) 
-  │
-  ▼
-[Liaison Agent] ──(写入)──> [FS-Bus Inbox]
-(新增, 秒回)                     │
-                            (Watcher 智能路由)
-                                 │
-                                 ▼
-                    ┌─── [CEO Agent (Bezos)] ───┐
-                    ├─── [CTO Agent (Vogels)] ──┤
-                    ├─── [QA Agent (Bach)] ─────┤
-                    └─── [Commander (Grove)] ───┘
-                                 │
-                                 ▼
-[通知推送] <──(Webhook)── [FS-Bus Outbox]
-```
-
----
-
-## 1. 环境准备
-
-确保 `agentsInfo` 目录存在且包含您的 11 个 `.md` 文件（外加新创建的 `liaison-spark.md`）。
-
----
-
-## 2. 一键初始化 (Smart Deployment)
-
-我们提供了一个智能脚本 `init-real-world.sh`，它会自动：
-1.  扫描 `agentsInfo` 中的所有 Agent。
-2.  为它们创建工作区。
-3.  **直接部署**（因为协议已经写入 `agentsInfo/*.md` 中了，不需要再注入）。
-4.  创建 Watcher 调度器。
-
-### 步骤 2.1：创建智能初始化脚本
-
-在项目根目录（包含 `agentsInfo` 的位置）创建 `init-real-world.sh`：
-
-```bash
 #!/bin/bash
-# init-real-world.sh - 适配现有 Agent 的智能部署脚本 (v3.2)
+# init-real-world.sh - 适配现有 Agent 的智能部署脚本 (v3.2 - Robust Optimized)
 
 set -e
 
@@ -73,7 +15,7 @@ if [ ! -d "$AGENTS_INFO_DIR" ]; then
     exit 1
 fi
 
-echo "🚀 开始 OpenClaw 真实环境部署..."
+echo "🚀 开始 OpenClaw 真实环境部署 (v3.2 Optimized)..."
 
 # 1. 创建 FS-Bus
 echo "📂 [1/4] 构建 FS-Bus 消息总线..."
@@ -102,8 +44,9 @@ for file in $AGENT_FILES; do
 done
 
 # 3. 生成 Watcher 调度脚本 (适配真实 ID)
-echo "👀 [3/4] 部署 Watcher 调度器..."
+echo "👀 [3/4] 部署 Watcher 调度器 (Robust Version)..."
 cat > "$WORKSPACES_DIR/watcher.py" <<EOF
+import subprocess
 import time
 import json
 import os
@@ -123,10 +66,6 @@ ERROR_DIR = BUS_DIR / "errors"
 # 确保目录存在
 for d in [INBOX, PROCESSING, OUTBOX, ARCHIVE_DIR, ERROR_DIR]:
     d.mkdir(parents=True, exist_ok=True)
-
-import subprocess
-
-# ... (其他导入)
 
 def run_agent_safe(agent_name, task_path, timeout=300):
     """
@@ -259,78 +198,3 @@ echo "下一步："
 echo "1. 配置 ~/.openclaw/openclaw.json (参考文档)"
 echo "2. 启动 Gateway: openclaw gateway start"
 echo "3. 启动 Watcher: python3 $WORKSPACES_DIR/watcher.py"
-```
-
-### 步骤 2.2：执行部署
-
-```bash
-chmod +x init-real-world.sh
-./init-real-world.sh
-```
-
----
-
-## 3. 全局配置 (`openclaw.json`)
-
-**必须**包含 `liaison` 以及所有您希望在后台运行的 Agent。
-
-**路径**: `~/.openclaw/openclaw.json`
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": { "primary": "zai/glm-5" },
-      "maxConcurrent": 4
-    },
-    "list": [
-      {
-        "id": "liaison-spark",
-        "name": "联络官",
-        "default": true,
-        "workspace": "/Users/baojie/.openclaw/workspaces/liaison-spark"
-      },
-      { "id": "commander-grove", "workspace": "/Users/baojie/.openclaw/workspaces/commander-grove" },
-      { "id": "ceo-bezos", "workspace": "/Users/baojie/.openclaw/workspaces/ceo-bezos" },
-      { "id": "cto-vogels", "workspace": "/Users/baojie/.openclaw/workspaces/cto-vogels" },
-      { "id": "fullstack-dhh", "workspace": "/Users/baojie/.openclaw/workspaces/fullstack-dhh" },
-      { "id": "product-norman", "workspace": "/Users/baojie/.openclaw/workspaces/product-norman" },
-      { "id": "qa-bach", "workspace": "/Users/baojie/.openclaw/workspaces/qa-bach" },
-      { "id": "ui-duarte", "workspace": "/Users/baojie/.openclaw/workspaces/ui-duarte" },
-      { "id": "interaction-cooper", "workspace": "/Users/baojie/.openclaw/workspaces/interaction-cooper" },
-      { "id": "marketing-godin", "workspace": "/Users/baojie/.openclaw/workspaces/marketing-godin" },
-      { "id": "sales-ross", "workspace": "/Users/baojie/.openclaw/workspaces/sales-ross" },
-      { "id": "operations-pg", "workspace": "/Users/baojie/.openclaw/workspaces/operations-pg" }
-    ]
-  },
-  "bindings": [
-    {
-      "agentId": "liaison-spark",
-      "match": { "channel": "feishu" } 
-    }
-  ]
-}
-```
-
----
-
-## 4. 常见问题 (FAQ)
-
-### Q: 为什么脚本变简单了？
-A: 因为我们已经将 **v3.0 通信协议** 直接写入了 `agentsInfo/*.md` 源文件中。现在每个 Agent 天生就知道如何使用 FS-Bus，部署脚本只需要负责复制文件和创建目录，不需要再进行复杂的文本注入了。这种“配置即代码”的方式更稳定、更易维护。
-
-### Q: Liaison 和其他 Agent 有什么区别？
-A: 
-- **Liaison (Spark)**: 运行在 Gateway 进程中，负责实时对话。它的协议是“读取用户消息 -> 写入 Inbox”。
-- **Specialists (Bezos 等)**: 运行在 CLI 进程中，负责后台任务。它们的协议是“读取 Processing -> 写入 Outbox”。
-
----
-
-## 5. 总结
-
-这份 v3.2 指南完美适配了您的真实环境：
-1.  **统一管理**：Liaison 也是 `agentsInfo` 的一员，所有角色定义集中管理。
-2.  **极简部署**：协议内建于源文件，脚本逻辑简化，部署更可靠。
-3.  **职责分明**：前台 Liaison 秒回，后台 Specialists 深度思考，中间由 Watcher 调度。
-
-现在，您的 12 人专家团队（11 专家 + 1 联络官）已经准备就绪，随时待命！
