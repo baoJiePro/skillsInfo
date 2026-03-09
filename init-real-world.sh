@@ -158,7 +158,7 @@ def main():
                 print(f"  👉 路由到: {target_agent}")
 
                 # 4. 执行任务 (增加超时控制模拟)
-                result = run_agent_safe(target_agent, proc_file, timeout=60)
+                result = run_agent_safe(target_agent, proc_file, timeout=300)
                 
                 # 5. 原子写入：先写临时文件，再重命名
                 temp_out = OUTBOX / f".{task_file.name}.tmp"
