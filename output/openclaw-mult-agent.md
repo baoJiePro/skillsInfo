@@ -1,14 +1,6 @@
-# OpenClaw 多 Agent 实战：终极部署指南 (v3.2 - Real World)
+# OpenClaw 多 Agent 实战：终极部署指南 
 
-> **⚠️ 版本说明**：本文档基于 OpenClaw 2026.3.2 版本编写。
-> **🚀 v3.2 适配版**：适配了真实的 11 个专业 Agent (`agentsInfo/*.md`)，并引入 `Liaison` 作为非阻塞交互入口。此版本整合了 **Persona (角色)** 与 **Protocol (协议)**。
-
-> **📅 最后更新**：2026-03-09
-> **🔄 文档状态**：已适配真实环境
-
----
-
-## 0. 架构全景图 (Real World)
+## 1. 架构全景图 (Real World)
 
 在您的真实环境中，我们将建立一个由 `Liaison` 领衔，11 位专业 Agent (`agentsInfo/*`) 支持的异步协作网络。
 
@@ -35,15 +27,13 @@
 [通知推送] <──(Webhook)── [FS-Bus Outbox]
 ```
 
----
-
-## 1. 环境准备
+## 2. 环境准备
 
 确保 `agentsInfo` 目录存在且包含您的 11 个 `.md` 文件（外加新创建的 `liaison-spark.md`）。
 
----
+确保  已安装python环境，python版本3.6及以上
 
-## 2. 一键初始化 (Smart Deployment)
+## 3. 一键初始化 
 
 我们提供了一个智能脚本 `init-real-world.sh`，它会自动：
 
@@ -52,7 +42,7 @@
 3. **直接部署**（因为协议已经写入 `agentsInfo/*.md` 中了，不需要再注入）。
 4. 创建 Watcher 调度器。
 
-### 步骤 2.1：创建智能初始化脚本
+### 步骤 3.1：创建智能初始化脚本
 
 在项目根目录（包含 `agentsInfo` 的位置）创建 `init-real-world.sh`：
 
@@ -141,10 +131,10 @@ def run_agent_safe(agent_name, task_path, timeout=300):
             task_data = json.load(f)
             # 提取用户需求，如果没有 content 则回退到空字符串
             user_prompt = task_data.get("content", "")
-          
+    
         if not user_prompt:
             return "❌ 错误: 任务文件中缺少 'content' 字段"
-          
+    
     except Exception as e:
         return f"❌ 无法读取任务文件: {str(e)}"
 
@@ -164,12 +154,12 @@ def run_agent_safe(agent_name, task_path, timeout=300):
             text=True, 
             timeout=timeout
         )
-      
+  
         if result.returncode != 0:
             # 尝试从 stderr 或 stdout 获取错误信息
             error_msg = result.stderr.strip() or result.stdout.strip() or "未知错误"
             raise Exception(f"Agent CLI 报错: {error_msg}")
-          
+    
         return result.stdout.strip()
 
     except FileNotFoundError:
@@ -177,7 +167,7 @@ def run_agent_safe(agent_name, task_path, timeout=300):
         print(f"⚠️ 未找到 'openclaw' 命令，回退到模拟模式...")
         time.sleep(1)
         return f"[{agent_name}] (Mock) 处理完成。请确保 openclaw CLI 已安装。"
-      
+  
     except subprocess.TimeoutExpired:
         raise Exception(f"Agent 执行超时 ({timeout}s)")
 
@@ -186,26 +176,26 @@ def main():
     while True:
         # 使用 list 避免迭代器在文件移动后失效
         task_files = list(INBOX.glob("*.json"))
-      
+    
         for task_file in task_files:
             print(f"📥 收到任务: {task_file.name}")
-          
+        
             proc_file = PROCESSING / task_file.name
-          
+        
             try:
                 # 1. 安全锁定：使用 move 而不是 rename (跨文件系统兼容)
                 if proc_file.exists():
                     print(f"⚠️ 处理中文件已存在，覆盖: {proc_file.name}")
                 shutil.move(str(task_file), str(proc_file))
-              
+            
                 # 2. 解析任务以获取路由信息
                 with open(proc_file) as f:
                     task = json.load(f)
-              
+            
                 # 3. 智能路由 (根据 agentsInfo 的 12 个角色，含 Liaison)
                 task_type = task.get("type", "general")
                 target_agent = "commander-grove" 
-              
+            
                 if "strategy" in task_type: target_agent = "ceo-bezos"
                 elif "arch" in task_type: target_agent = "cto-vogels"
                 elif "code" in task_type: target_agent = "fullstack-dhh"
@@ -216,28 +206,41 @@ def main():
                 elif "sale" in task_type: target_agent = "sales-ross"
                 elif "ops" in task_type: target_agent = "operations-pg"
                 elif "inter" in task_type: target_agent = "interaction-cooper"
-              
+            
                 print(f"  👉 路由到: {target_agent}")
 
                 # 4. 执行任务 (增加超时控制模拟)
                 result = run_agent_safe(target_agent, proc_file, timeout=300)
-              
+            
                 # 5. 原子写入：先写临时文件，再重命名
                 temp_out = OUTBOX / f".{task_file.name}.tmp"
                 final_out = OUTBOX / task_file.name
-              
+            
                 with open(temp_out, "w") as f:
                     json.dump({**task, "result": result, "status": "done", "completed_at": datetime.datetime.now().isoformat()}, f, ensure_ascii=False, indent=2)
-              
+            
                 shutil.move(str(temp_out), str(final_out))
                 print(f"✅ 任务完成: {final_out.name}")
-              
+
+                # 5.5 写入通知
+                notification_file = NOTIFICATIONS_DIR / f"{task_file.name}.notify"
+                with open(notification_file, "w") as f:
+                    json.dump({
+                        "task_id": task.get("id", task_file.name),
+                        "type": task.get("type", "unknown"),
+                        "status": "done",
+                        "completed_at": datetime.datetime.now().isoformat(),
+                        "result_summary": result[:200] if len(result) > 200 else result,  # 前200字符摘要
+                        "agent": target_agent
+                    }, f, ensure_ascii=False, indent=2)
+                print(f"🔔 已发送通知: {notification_file.name}")
+
                 # 6. 归档而非删除
                 today_archive = ARCHIVE_DIR / datetime.datetime.now().strftime("%Y-%m-%d")
                 today_archive.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(proc_file), str(today_archive / task_file.name))
                 print(f"📦 已归档至: {today_archive.name}")
-              
+            
             except Exception as e:
                 print(f"❌ 处理失败: {e}")
                 # 移动到 error 目录供人工干预
@@ -248,7 +251,7 @@ def main():
                          shutil.move(str(task_file), str(ERROR_DIR / task_file.name))
                 except Exception as move_err:
                     print(f"❌ 移动到错误目录失败: {move_err}")
-          
+        
         time.sleep(1)
 
 if __name__ == "__main__":
@@ -262,16 +265,14 @@ echo "2. 启动 Gateway: openclaw gateway start"
 echo "3. 启动 Watcher: python3 $WORKSPACES_DIR/watcher.py"
 ```
 
-### 步骤 2.2：执行部署
+### 步骤 3.2：执行部署
 
 ```bash
 chmod +x init-real-world.sh
 ./init-real-world.sh
 ```
 
----
-
-## 3. 全局配置 (`openclaw.json`)
+## 4. 全局配置 (`openclaw.json`)
 
 **必须**包含 `liaison` 以及所有您希望在后台运行的 Agent。
 
@@ -307,7 +308,7 @@ chmod +x init-real-world.sh
   "bindings": [
     {
       "agentId": "liaison-spark",
-      "match": { "channel": "feishu" }
+      "match": { "channel": "feishu" } 
     }
   ]
 }
@@ -319,7 +320,7 @@ chmod +x init-real-world.sh
 
 ---
 
-## 4. 常见问题 (FAQ)
+## 5. 常见问题 (FAQ)
 
 ### Q: 为什么脚本变简单了？
 
@@ -334,7 +335,7 @@ A:
 
 ---
 
-## 5. 总结
+## 6. 总结
 
 这份 v3.2 指南完美适配了您的真实环境：
 

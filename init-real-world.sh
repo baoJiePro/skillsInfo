@@ -169,7 +169,20 @@ def main():
                 
                 shutil.move(str(temp_out), str(final_out))
                 print(f"✅ 任务完成: {final_out.name}")
-                
+
+                # 5.5 写入通知
+                notification_file = NOTIFICATIONS_DIR / f"{task_file.name}.notify"
+                with open(notification_file, "w") as f:
+                    json.dump({
+                        "task_id": task.get("id", task_file.name),
+                        "type": task.get("type", "unknown"),
+                        "status": "done",
+                        "completed_at": datetime.datetime.now().isoformat(),
+                        "result_summary": result[:200] if len(result) > 200 else result,  # 前200字符摘要
+                        "agent": target_agent
+                    }, f, ensure_ascii=False, indent=2)
+                print(f"🔔 已发送通知: {notification_file.name}")
+
                 # 6. 归档而非删除
                 today_archive = ARCHIVE_DIR / datetime.datetime.now().strftime("%Y-%m-%d")
                 today_archive.mkdir(parents=True, exist_ok=True)
