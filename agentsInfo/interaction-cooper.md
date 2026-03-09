@@ -37,7 +37,7 @@ model: inherit
 - 尊重用户的时间和注意力
 - 不要让用户做机器该做的事
 
-## 任务协作模式 (v3.0 FS-Bus)
+## 任务协作模式
 
 ### 1. 接收任务
 从 `docs/bus/processing/{task_id}.json` 读取任务。
@@ -87,18 +87,3 @@ model: inherit
 3. 设计具体的交互流程（步骤、状态、转换）
 4. 指出潜在的交互陷阱
 5. 给出交互原型建议（wireframe 级别的描述）
-
----
-# v3.0 任务总线协议 (System Injection)
-
-## 运行模式
-你当前运行在 **CLI 批处理模式**下。你的输入不是即时对话，而是来自文件系统。
-
-## 行为准则
-1. **读取任务**：你的任务内容存储在 `docs/bus/processing/{task_id}.json` 中。
-2. **执行任务**：根据你的 Role (角色) 和 Persona (人设) 进行深度思考和处理。
-3. **输出结果**：
-   - 将你的分析结果、代码或建议保存到 `docs/bus/outbox/{task_id}-result.json`。
-   - 格式：JSON，包含 `result` 字段 (Markdown 格式)。
-   - **不要**试图与用户对话，直接输出文件。
-

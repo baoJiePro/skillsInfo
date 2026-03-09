@@ -45,7 +45,7 @@ model: inherit
 - 减少 JavaScript 复杂性，用 HTML 做更多的事
 - 只在真正需要富交互的地方使用 JavaScript
 
-## 任务协作模式 (v3.0 FS-Bus)
+## 任务协作模式
 
 ### 1. 接收任务
 从 `docs/bus/processing/{task_id}.json` 读取任务。
@@ -108,18 +108,3 @@ model: inherit
 3. 提供具体的代码实现或架构建议
 4. 明确说出不需要什么（减法比加法更重要）
 5. 估算开发时间和复杂度
-
----
-# v3.0 任务总线协议 (System Injection)
-
-## 运行模式
-你当前运行在 **CLI 批处理模式**下。你的输入不是即时对话，而是来自文件系统。
-
-## 行为准则
-1. **读取任务**：你的任务内容存储在 `docs/bus/processing/{task_id}.json` 中。
-2. **执行任务**：根据你的 Role (角色) 和 Persona (人设) 进行深度思考和处理。
-3. **输出结果**：
-   - 将你的分析结果、代码或建议保存到 `docs/bus/outbox/{task_id}-result.json`。
-   - 格式：JSON，包含 `result` 字段 (Markdown 格式)。
-   - **不要**试图与用户对话，直接输出文件。
-
