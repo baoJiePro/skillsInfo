@@ -39,7 +39,7 @@
 
 ## 1. 环境准备
 
-确保 `agentsInfo` 目录存在且包含您的 11 个 `.md` 文件。
+确保 `agentsInfo` 目录存在且包含您的 11 个 `.md` 文件（外加新创建的 `liaison-spark.md`）。
 
 ---
 
@@ -48,8 +48,8 @@
 我们提供了一个智能脚本 `init-real-world.sh`，它会自动：
 1.  扫描 `agentsInfo` 中的所有 Agent。
 2.  为它们创建工作区。
-3.  **保留原有 Persona** 的同时，**注入 v3.0 通信协议**。
-4.  创建全新的 `Liaison` Agent。
+3.  **直接部署**（因为协议已经写入 `agentsInfo/*.md` 中了，不需要再注入）。
+4.  创建 Watcher 调度器。
 
 ### 步骤 2.1：创建智能初始化脚本
 
@@ -57,7 +57,7 @@
 
 ```bash
 #!/bin/bash
-# init-real-world.sh - 适配现有 Agent 的智能部署脚本
+# init-real-world.sh - 适配现有 Agent 的智能部署脚本 (v3.2)
 
 set -e
 
@@ -79,41 +79,8 @@ echo "🚀 开始 OpenClaw 真实环境部署..."
 echo "📂 [1/4] 构建 FS-Bus 消息总线..."
 mkdir -p "$BUS_DIR/"{inbox,processing,outbox,notifications,status,events}
 
-# 2. 部署 Liaison (联络官) - 这是一个全新的 Agent
-echo "🤖 [2/4] 部署 Liaison (联络官)..."
-mkdir -p "$WORKSPACES_DIR/liaison/docs"
-ln -sf "$BUS_DIR" "$WORKSPACES_DIR/liaison/docs/bus"
-
-cat > "$WORKSPACES_DIR/liaison/SOUL.md" <<EOF
-# Role: Liaison (联络官)
-你负责接收用户指令并快速反馈。**绝不执行耗时任务**。
-
-## 行为准则
-1. 收到用户需求后，提取关键信息（类型、内容）。
-2. 生成 JSON 任务文件，写入 \`docs/bus/inbox/{timestamp}-{type}.json\`。
-3. **立即**回复用户："收到，已安排后台处理 (Task ID: ...)"。
-4. 如果用户询问进度，读取 \`docs/bus/status\` 目录。
-
-## 任务类型映射
-- 战略/商业 -> type: "strategy"
-- 技术/架构 -> type: "arch"
-- 开发/代码 -> type: "code"
-- 产品/设计 -> type: "product"
-- 综合/复杂 -> type: "complex" (交给 Commander Grove)
-
-## JSON 格式示例
-\`\`\`json
-{
-  "id": "task-{timestamp}",
-  "type": "strategy",
-  "content": "用户原始需求",
-  "created_at": "{iso_time}"
-}
-\`\`\`
-EOF
-
-# 3. 部署 Specialist Agents (从 agentsInfo 读取)
-echo "🧠 [3/4] 适配专业 Agent..."
+# 2. 部署所有 Agent (包含 Liaison 和 Specialists)
+echo "🧠 [2/4] 部署 Agent 工作区..."
 
 # 获取所有 .md 文件名（不带路径）
 AGENT_FILES=$(ls "$AGENTS_INFO_DIR"/*.md | xargs -n 1 basename)
@@ -121,7 +88,7 @@ AGENT_FILES=$(ls "$AGENTS_INFO_DIR"/*.md | xargs -n 1 basename)
 for file in $AGENT_FILES; do
     # 提取 Agent ID (去掉 .md)
     agent_id="${file%.md}"
-    echo "  - 适配 Agent: $agent_id"
+    echo "  - 部署 Agent: $agent_id"
     
     agent_dir="$WORKSPACES_DIR/$agent_id"
     mkdir -p "$agent_dir/docs"
@@ -130,32 +97,12 @@ for file in $AGENT_FILES; do
     # 链接 Bus
     ln -sf "$BUS_DIR" "$agent_dir/docs/bus"
     
-    # 复制原始 Persona
+    # 直接复制（因为 agentsInfo 中的文件已经包含了 v3.0 协议）
     cp "$AGENTS_INFO_DIR/$file" "$agent_dir/SOUL.md"
-    
-    # --- 关键步骤：注入 v3.0 通信协议 ---
-    # 我们在文件末尾追加 "CLI 任务模式" 说明
-    cat >> "$agent_dir/SOUL.md" <<EOF
-
----
-# v3.0 任务总线协议 (System Injection)
-
-## 运行模式
-你当前运行在 **CLI 批处理模式**下。你的输入不是即时对话，而是来自文件系统。
-
-## 行为准则
-1. **读取任务**：你的任务内容存储在 \`docs/bus/processing/{task_id}.json\` 中。
-2. **执行任务**：根据你的 Role (角色) 和 Persona (人设) 进行深度思考和处理。
-3. **输出结果**：
-   - 将你的分析结果、代码或建议保存到 \`docs/bus/outbox/{task_id}-result.json\`。
-   - 格式：JSON，包含 \`result\` 字段 (Markdown 格式)。
-   - **不要**试图与用户对话，直接输出文件。
-
-EOF
 done
 
-# 4. 生成 Watcher 调度脚本 (适配真实 ID)
-echo "👀 [4/4] 部署 Watcher 调度器..."
+# 3. 生成 Watcher 调度脚本 (适配真实 ID)
+echo "👀 [3/4] 部署 Watcher 调度器..."
 cat > "$WORKSPACES_DIR/watcher.py" <<EOF
 import time
 import json
@@ -190,10 +137,11 @@ def main():
             with open(proc_file) as f:
                 task = json.load(f)
             
-            # 3. 智能路由 (根据 agentsInfo 的 11 个角色)
+            # 3. 智能路由 (根据 agentsInfo 的 12 个角色，含 Liaison)
             task_type = task.get("type", "general")
             target_agent = "commander-grove" # 默认兜底：交给指挥官 Grove
             
+            # Liaison 产生任务，不应该自己处理，而是分发
             if "strategy" in task_type: target_agent = "ceo-bezos"
             elif "arch" in task_type: target_agent = "cto-vogels"
             elif "code" in task_type: target_agent = "fullstack-dhh"
@@ -256,10 +204,10 @@ chmod +x init-real-world.sh
     },
     "list": [
       {
-        "id": "liaison",
+        "id": "liaison-spark",
         "name": "联络官",
         "default": true,
-        "workspace": "/Users/baojie/.openclaw/workspaces/liaison"
+        "workspace": "/Users/baojie/.openclaw/workspaces/liaison-spark"
       },
       { "id": "commander-grove", "workspace": "/Users/baojie/.openclaw/workspaces/commander-grove" },
       { "id": "ceo-bezos", "workspace": "/Users/baojie/.openclaw/workspaces/ceo-bezos" },
@@ -276,7 +224,7 @@ chmod +x init-real-world.sh
   },
   "bindings": [
     {
-      "agentId": "liaison",
+      "agentId": "liaison-spark",
       "match": { "channel": "feishu" } 
     }
   ]
@@ -287,23 +235,21 @@ chmod +x init-real-world.sh
 
 ## 4. 常见问题 (FAQ)
 
-### Q: 为什么要修改 SOUL.md？
-A: 您的 `agentsInfo` 定义了 Agent 的**人设 (Persona)**，但没告诉它们**如何工作 (Protocol)**。
-我们的脚本在保留原有 Persona 的基础上，**追加**了一段 "v3.0 任务总线协议"。这就像是给 Bezos 发了一份备忘录，告诉他："从现在开始，你的任务单在 `inbox` 盒子里，请处理完放在 `outbox`。"
+### Q: 为什么脚本变简单了？
+A: 因为我们已经将 **v3.0 通信协议** 直接写入了 `agentsInfo/*.md` 源文件中。现在每个 Agent 天生就知道如何使用 FS-Bus，部署脚本只需要负责复制文件和创建目录，不需要再进行复杂的文本注入了。这种“配置即代码”的方式更稳定、更易维护。
 
-### Q: Commander Grove 还是指挥官吗？
-A: 在新架构中，`Liaison` 是**前台接待**，而 `Commander Grove` 升职为**幕后参谋长**。当任务太复杂，Liaison 不知道分给谁时，会扔给 Grove，由 Grove 进行深度的任务拆解（这是他的专长），然后再生成新的子任务。
-
-### Q: 如何添加新 Agent？
-只需在 `agentsInfo/` 添加一个新的 `.md` 文件，然后重新运行 `init-real-world.sh` 即可。脚本是幂等的（Idempotent），不会破坏现有配置。
+### Q: Liaison 和其他 Agent 有什么区别？
+A: 
+- **Liaison (Spark)**: 运行在 Gateway 进程中，负责实时对话。它的协议是“读取用户消息 -> 写入 Inbox”。
+- **Specialists (Bezos 等)**: 运行在 CLI 进程中，负责后台任务。它们的协议是“读取 Processing -> 写入 Outbox”。
 
 ---
 
 ## 5. 总结
 
 这份 v3.2 指南完美适配了您的真实环境：
-1.  **尊重现有资产**：完整保留了 11 个 Agent 的精心设计的人设。
-2.  **引入现代架构**：通过注入协议和 Watcher 路由，激活了这些静态文件。
-3.  **无缝集成**：脚本自动化处理了所有繁琐的路径和链接工作。
+1.  **统一管理**：Liaison 也是 `agentsInfo` 的一员，所有角色定义集中管理。
+2.  **极简部署**：协议内建于源文件，脚本逻辑简化，部署更可靠。
+3.  **职责分明**：前台 Liaison 秒回，后台 Specialists 深度思考，中间由 Watcher 调度。
 
-现在，您的 11 人专家团队已经准备就绪，随时待命！
+现在，您的 12 人专家团队（11 专家 + 1 联络官）已经准备就绪，随时待命！
