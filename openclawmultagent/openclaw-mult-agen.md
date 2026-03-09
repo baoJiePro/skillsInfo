@@ -472,3 +472,7 @@ chmod +x init-real-world.sh
 - [ ]  启动 Gateway 和 Watcher
 - [ ]  测试 Liaison 响应
 - [ ]  验证专家 Agent 调用
+
+## 7. 免责声明
+
+### 该项目处于实验阶段，请谨慎部署
