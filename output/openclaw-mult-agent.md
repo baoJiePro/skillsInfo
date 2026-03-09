@@ -288,29 +288,34 @@ chmod +x init-real-world.sh
         "id": "liaison-spark",
         "name": "联络官",
         "default": true,
-        "workspace": "/Users/baojie/.openclaw/workspaces/liaison-spark"
+        "workspace": "$HOME/.openclaw/workspaces/liaison-spark"
       },
-      { "id": "commander-grove", "workspace": "/Users/baojie/.openclaw/workspaces/commander-grove" },
-      { "id": "ceo-bezos", "workspace": "/Users/baojie/.openclaw/workspaces/ceo-bezos" },
-      { "id": "cto-vogels", "workspace": "/Users/baojie/.openclaw/workspaces/cto-vogels" },
-      { "id": "fullstack-dhh", "workspace": "/Users/baojie/.openclaw/workspaces/fullstack-dhh" },
-      { "id": "product-norman", "workspace": "/Users/baojie/.openclaw/workspaces/product-norman" },
-      { "id": "qa-bach", "workspace": "/Users/baojie/.openclaw/workspaces/qa-bach" },
-      { "id": "ui-duarte", "workspace": "/Users/baojie/.openclaw/workspaces/ui-duarte" },
-      { "id": "interaction-cooper", "workspace": "/Users/baojie/.openclaw/workspaces/interaction-cooper" },
-      { "id": "marketing-godin", "workspace": "/Users/baojie/.openclaw/workspaces/marketing-godin" },
-      { "id": "sales-ross", "workspace": "/Users/baojie/.openclaw/workspaces/sales-ross" },
-      { "id": "operations-pg", "workspace": "/Users/baojie/.openclaw/workspaces/operations-pg" }
+      { "id": "commander-grove", "workspace": "$HOME/.openclaw/workspaces/commander-grove" },
+      { "id": "ceo-bezos", "workspace": "$HOME/.openclaw/workspaces/ceo-bezos" },
+      { "id": "cto-vogels", "workspace": "$HOME/.openclaw/workspaces/cto-vogels" },
+      { "id": "fullstack-dhh", "workspace": "$HOME/.openclaw/workspaces/fullstack-dhh" },
+      { "id": "product-norman", "workspace": "$HOME/.openclaw/workspaces/product-norman" },
+      { "id": "qa-bach", "workspace": "$HOME/.openclaw/workspaces/qa-bach" },
+      { "id": "ui-duarte", "workspace": "$HOME/.openclaw/workspaces/ui-duarte" },
+      { "id": "interaction-cooper", "workspace": "$HOME/.openclaw/workspaces/interaction-cooper" },
+      { "id": "marketing-godin", "workspace": "$HOME/.openclaw/workspaces/marketing-godin" },
+      { "id": "sales-ross", "workspace": "$HOME/.openclaw/workspaces/sales-ross" },
+      { "id": "operations-pg", "workspace": "$HOME/.openclaw/workspaces/operations-pg" }
     ]
   },
   "bindings": [
     {
       "agentId": "liaison-spark",
-      "match": { "channel": "feishu" } 
+      "match": { "channel": "feishu" }
     }
   ]
 }
 ```
+
+> **⚠️ 路径说明**：
+> - `$HOME` 会自动展开为您当前用户的家目录（如 `/Users/yourname/` 或 `/home/yourname/`）
+> - 如果 OpenClaw 默认使用 `workspace`（不带 s），请将上述路径中的 `workspaces` 改为 `workspace`
+> - 路径必须与 `init-real-world.sh` 脚本中创建的目录结构保持一致
 
 ---
 
