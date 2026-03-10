@@ -148,7 +148,7 @@ cat > init-agents.sh << 'EOF'
 #!/bin/bash
 
 # 进入 OpenClaw 配置目录
-cd ~/.openclaw
+cd "$HOME/.openclaw"
 
 # 定义 Agent 列表
 AGENTS=(
@@ -179,7 +179,7 @@ echo "📋 开始复制 Agent 定义文件..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for agent in "${AGENTS[@]}"; do
   if [ -f "$SCRIPT_DIR/agentsInfo/${agent}.md" ]; then
-    cp "$SCRIPT_DIR/agentsInfo/${agent}.md" ~/.openclaw/agents/$agent/workspace/SOUL.md
+    cp "$SCRIPT_DIR/agentsInfo/${agent}.md" "$HOME/.openclaw/agents/$agent/workspace/SOUL.md"
     echo "✅ 复制: ${agent}.md -> SOUL.md"
   else
     echo "⚠️  未找到: agentsInfo/${agent}.md"
@@ -190,8 +190,8 @@ echo ""
 echo "🎉 Agent 环境初始化完成！"
 echo ""
 echo "验证命令："
-echo "  ls -la ~/.openclaw/agents/"
-echo "  ls -la ~/.openclaw/agents/liaison-spark/workspace/"
+echo "  ls -la $HOME/.openclaw/agents/"
+echo "  ls -la $HOME/.openclaw/agents/liaison-spark/workspace/"
 EOF
 
 # 添加执行权限
@@ -205,10 +205,10 @@ chmod +x init-agents.sh
 
 ```bash
 # 检查 Agent 目录
-ls -la ~/.openclaw/agents/
+ls -la "$HOME/.openclaw/agents/"
 
 # 检查 SOUL.md 是否复制成功
-ls -la ~/.openclaw/agents/liaison-spark/workspace/
+ls -la "$HOME/.openclaw/agents/liaison-spark/workspace/"
 ```
 
 ---
@@ -254,10 +254,10 @@ openclaw gateway start
 
 ```bash
 # 备份原配置
-cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.backup
+cp "$HOME/.openclaw/openclaw.json" "$HOME/.openclaw/openclaw.json.backup"
 
 # 编辑配置
-nano ~/.openclaw/openclaw.json
+nano "$HOME/.openclaw/openclaw.json"
 ```
 
 **在原有配置基础上，添加以下内容**：
@@ -495,7 +495,7 @@ openclaw gateway start
 openclaw agents list
 
 # 检查对应 Agent 的 SOUL.md 是否存在
-ls ~/.openclaw/agents/liaison-spark/workspace/
+ls "$HOME/.openclaw/agents/liaison-spark/workspace/"
 ```
 
 ### Q3: 飞书没有收到消息
@@ -545,7 +545,7 @@ Liaison Spark (联络官)
 
 ```bash
 # 编辑配置文件
-nano ~/.openclaw/openclaw.json
+nano "$HOME/.openclaw/openclaw.json"
 
 # 在 channels 部分添加：
 "discord": {
@@ -558,7 +558,7 @@ nano ~/.openclaw/openclaw.json
 
 ```bash
 # 编辑配置文件
-nano ~/.openclaw/openclaw.json
+nano "$HOME/.openclaw/openclaw.json"
 
 # 在 channels 部分添加：
 "telegram": {
