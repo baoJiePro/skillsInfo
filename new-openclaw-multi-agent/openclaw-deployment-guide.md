@@ -176,10 +176,31 @@ done
 # 复制 Agent 定义文件
 echo ""
 echo "📋 开始复制 Agent 定义文件..."
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# 获取脚本所在目录（支持从任意位置执行）
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+if [ -L "$SCRIPT_PATH" ]; then
+  # 如果是软链接，获取真实路径
+  SCRIPT_PATH="$(readlink -f "$SCRIPT_PATH" 2>/dev/null || readlink "$SCRIPT_PATH" 2>/dev/null || echo "$SCRIPT_PATH")"
+fi
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+# 查找 agentsInfo 目录（支持两种位置：脚本同级目录或当前目录）
+if [ -d "$SCRIPT_DIR/agentsInfo" ]; then
+  AGENTS_INFO_DIR="$SCRIPT_DIR/agentsInfo"
+elif [ -d "$(pwd)/agentsInfo" ]; then
+  AGENTS_INFO_DIR="$(pwd)/agentsInfo"
+else
+  echo "❌ 错误：找不到 agentsInfo 目录"
+  echo "   请确保 agentsInfo 目录与 init-agents.sh 在同一目录下"
+  exit 1
+fi
+
+echo "   使用 agentsInfo 目录: $AGENTS_INFO_DIR"
+
 for agent in "${AGENTS[@]}"; do
-  if [ -f "$SCRIPT_DIR/agentsInfo/${agent}.md" ]; then
-    cp "$SCRIPT_DIR/agentsInfo/${agent}.md" "$HOME/.openclaw/agents/$agent/workspace/SOUL.md"
+  if [ -f "$AGENTS_INFO_DIR/${agent}.md" ]; then
+    cp "$AGENTS_INFO_DIR/${agent}.md" "$HOME/.openclaw/agents/$agent/workspace/SOUL.md"
     echo "✅ 复制: ${agent}.md -> SOUL.md"
   else
     echo "⚠️  未找到: agentsInfo/${agent}.md"
