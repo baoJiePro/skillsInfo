@@ -132,64 +132,125 @@ Commander (统筹汇总)
 
 ## 前置条件
 
-- [x] 已安装 OpenClaw (`npm install -g openclaw`)
-- [x] 已运行 `openclaw onboard` 完成初始化
-- [x] 已有飞书企业账号，并创建了企业自建应用（用于用户通信）
+- [X]  已安装 OpenClaw (`npm install -g openclaw`)
+- [X]  已运行 `openclaw onboard` 完成初始化
+- [X]  已有飞书企业账号，并创建了企业自建应用（用于用户通信）
 
 ---
 
-## 第一步：创建 Agent 目录结构
+## 第一步：一键初始化 Agent 环境
 
-复制以下命令，在终端中执行：
+创建并执行初始化脚本：
 
 ```bash
+# 创建初始化脚本
+cat > init-agents.sh << 'EOF'
+#!/bin/bash
+
 # 进入 OpenClaw 配置目录
 cd ~/.openclaw
 
-# 创建 12 个 Agent 的目录结构
-for agent in liaison-spark commander-grove ceo-bezos cto-vogels fullstack-dhh product-norman ui-duarte qa-bach marketing-godin sales-ross operations-pg interaction-cooper; do
+# 定义 Agent 列表
+AGENTS=(
+  "liaison-spark"
+  "commander-grove"
+  "ceo-bezos"
+  "cto-vogels"
+  "fullstack-dhh"
+  "product-norman"
+  "ui-duarte"
+  "qa-bach"
+  "marketing-godin"
+  "sales-ross"
+  "operations-pg"
+  "interaction-cooper"
+)
+
+# 创建目录结构
+echo "🚀 开始创建 Agent 目录结构..."
+for agent in "${AGENTS[@]}"; do
   mkdir -p agents/$agent/{agent,sessions,workspace}
   echo "✅ 创建目录: agents/$agent"
 done
-```
 
-**执行后检查**：
-
-```bash
-ls -la agents/
-# 应该看到 12 个 Agent 目录
-```
-
----
-
-## 第二步：复制 Agent 定义文件
-
-假设你的 `agentsInfo` 文件在当前目录的 `agentsInfo/` 文件夹中：
-
-```bash
-# 复制所有 Agent 定义到对应目录
-for agent in liaison-spark commander-grove ceo-bezos cto-vogels fullstack-dhh product-norman ui-duarte qa-bach marketing-godin sales-ross operations-pg interaction-cooper; do
-  if [ -f "agentsInfo/${agent}.md" ]; then
-    cp "agentsInfo/${agent}.md" ~/.openclaw/agents/$agent/workspace/SOUL.md
+# 复制 Agent 定义文件
+echo ""
+echo "📋 开始复制 Agent 定义文件..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+for agent in "${AGENTS[@]}"; do
+  if [ -f "$SCRIPT_DIR/agentsInfo/${agent}.md" ]; then
+    cp "$SCRIPT_DIR/agentsInfo/${agent}.md" ~/.openclaw/agents/$agent/workspace/SOUL.md
     echo "✅ 复制: ${agent}.md -> SOUL.md"
   else
     echo "⚠️  未找到: agentsInfo/${agent}.md"
   fi
 done
+
+echo ""
+echo "🎉 Agent 环境初始化完成！"
+echo ""
+echo "验证命令："
+echo "  ls -la ~/.openclaw/agents/"
+echo "  ls -la ~/.openclaw/agents/liaison-spark/workspace/"
+EOF
+
+# 添加执行权限
+chmod +x init-agents.sh
+
+# 执行脚本
+./init-agents.sh
 ```
 
-**验证复制成功**：
+**验证初始化结果**：
 
 ```bash
+# 检查 Agent 目录
+ls -la ~/.openclaw/agents/
+
+# 检查 SOUL.md 是否复制成功
 ls -la ~/.openclaw/agents/liaison-spark/workspace/
-# 应该看到 SOUL.md 文件
 ```
 
 ---
 
-## 第三步：配置 OpenClaw 主配置文件
+## 第二步：配置 OpenClaw 并启动
 
-编辑 `~/.openclaw/openclaw.json`：
+选择以下**任意一种方式**配置：
+
+### 方式一：使用命令行工具
+
+```bash
+# 1. 配置 12 个 Agent
+openclaw config set agents.list '[
+  {"id": "liaison-spark", "name": "Liaison Spark", "description": "用户联络官", "workspace": "~/.openclaw/agents/liaison-spark/workspace"},
+  {"id": "commander-grove", "name": "Commander Grove", "description": "任务指挥官", "workspace": "~/.openclaw/agents/commander-grove/workspace", "subagents": {"allowAgents": ["ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach"]}},
+  {"id": "ceo-bezos", "name": "CEO Bezos", "description": "战略决策专家", "workspace": "~/.openclaw/agents/ceo-bezos/workspace"},
+  {"id": "cto-vogels", "name": "CTO Vogels", "description": "技术架构专家", "workspace": "~/.openclaw/agents/cto-vogels/workspace"},
+  {"id": "fullstack-dhh", "name": "FullStack DHH", "description": "全栈开发专家", "workspace": "~/.openclaw/agents/fullstack-dhh/workspace"},
+  {"id": "product-norman", "name": "Product Norman", "description": "产品设计专家", "workspace": "~/.openclaw/agents/product-norman/workspace"},
+  {"id": "ui-duarte", "name": "UI Duarte", "description": "UI 设计专家", "workspace": "~/.openclaw/agents/ui-duarte/workspace"},
+  {"id": "qa-bach", "name": "QA Bach", "description": "质量保证专家", "workspace": "~/.openclaw/agents/qa-bach/workspace"},
+  {"id": "marketing-godin", "name": "Marketing Godin", "description": "营销策略专家", "workspace": "~/.openclaw/agents/marketing-godin/workspace"},
+  {"id": "sales-ross", "name": "Sales Ross", "description": "销售策略专家", "workspace": "~/.openclaw/agents/sales-ross/workspace"},
+  {"id": "operations-pg", "name": "Operations PG", "description": "运营策略专家", "workspace": "~/.openclaw/agents/operations-pg/workspace"},
+  {"id": "interaction-cooper", "name": "Interaction Cooper", "description": "交互设计专家", "workspace": "~/.openclaw/agents/interaction-cooper/workspace"}
+]'
+
+# 2. 配置飞书渠道
+openclaw config set channels.feishu.appId "${FEISHU_APP_ID}"
+openclaw config set channels.feishu.appSecret "${FEISHU_APP_SECRET}"
+openclaw config set channels.feishu.enabled true
+openclaw config set channels.feishu.connectionMode "websocket"
+
+# 3. 启用 Agent 间通信
+openclaw config set tools.agentToAgent.enabled true
+openclaw config set tools.agentToAgent.allow '["liaison-spark", "commander-grove", "ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach", "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"]'
+
+# 4. 启动 Gateway
+openclaw gateway start
+```
+
+### 方式二：编辑配置文件
 
 ```bash
 # 备份原配置
@@ -199,33 +260,22 @@ cp ~/.openclaw/openclaw.json ~/.openclaw/openclaw.json.backup
 nano ~/.openclaw/openclaw.json
 ```
 
-**粘贴以下内容**（替换整个文件）：
+**在原有配置基础上，添加以下内容**：
 
 ```json
 {
   "agents": {
-    "defaults": {
-      "workspace": "~/.openclaw/agents/main/workspace",
-      "model": {
-        "primary": "anthropic/claude-sonnet-4",
-        "fallbacks": ["openai/gpt-4o"]
-      },
-      "sandbox": {
-        "mode": "non-main",
-        "scope": "agent"
-      }
-    },
     "list": [
       {
         "id": "liaison-spark",
         "name": "Liaison Spark",
-        "description": "用户联络官，负责秒级响应和任务分发",
+        "description": "用户联络官",
         "workspace": "~/.openclaw/agents/liaison-spark/workspace"
       },
       {
         "id": "commander-grove",
         "name": "Commander Grove",
-        "description": "任务指挥官，负责复杂任务统筹",
+        "description": "任务指挥官",
         "workspace": "~/.openclaw/agents/commander-grove/workspace",
         "subagents": {
           "allowAgents": ["ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach"]
@@ -295,19 +345,12 @@ nano ~/.openclaw/openclaw.json
   },
 
   "channels": {
-    "telegram": {
-      "botToken": "${TELEGRAM_BOT_TOKEN}",
-      "dmPolicy": "open",
-      "groups": {
-        "*": { "requireMention": false }
-      }
+    "feishu": {
+      "appId": "${FEISHU_APP_ID}",
+      "appSecret": "${FEISHU_APP_SECRET}",
+      "enabled": true,
+      "connectionMode": "websocket"
     }
-  },
-
-  "gateway": {
-    "bind": "127.0.0.1:18789",
-    "auth": { "mode": "password" },
-    "reload": { "mode": "hybrid", "debounceMs": 300 }
   },
 
   "tools": {
@@ -318,58 +361,33 @@ nano ~/.openclaw/openclaw.json
         "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach",
         "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"
       ]
-    },
-    "sessions": { "visibility": "tree" }
+    }
   }
 }
 ```
 
 **保存退出**：`Ctrl+O` 回车保存，`Ctrl+X` 退出
 
----
-
-## 第四步：设置环境变量
-
 ```bash
-# 编辑环境变量文件
-nano ~/.openclaw/.env
+# 启动 Gateway
+openclaw gateway start
 ```
-
-**粘贴你的 Telegram Bot Token**：
-
-```bash
-TELEGRAM_BOT_TOKEN=你的机器人Token在这里
-```
-
-**获取 Telegram Bot Token 的方法**：
-
-1. 在 Telegram 中搜索 `@BotFather`
-2. 发送 `/newbot`
-3. 按提示输入机器人名称
-4. 复制获得的 Token
 
 ---
-
-## 第五步：启动 Gateway
-
-```bash
-# 启动 OpenClaw Gateway
-openclaw gateway start --config ~/.openclaw/openclaw.json
-```
 
 **看到以下输出表示启动成功**：
 
 ```
 ✓ Gateway started on 127.0.0.1:18789
 ✓ Loaded 12 agents
-✓ Telegram channel connected
+✓ Feishu channel connected
 ```
 
 **保持运行**，新开一个终端窗口继续下一步。
 
 ---
 
-## 第六步：验证部署
+## 第三步：验证部署
 
 在新终端窗口中执行：
 
@@ -393,11 +411,11 @@ openclaw gateway status
 
 ---
 
-## 第七步：测试系统
+## 第四步：测试系统
 
 ### 测试 1：简单问候
 
-在 Telegram 中向你的机器人发送：
+在飞书中向你的机器人发送：
 
 ```
 你好
@@ -480,11 +498,11 @@ openclaw agents list
 ls ~/.openclaw/agents/liaison-spark/workspace/
 ```
 
-### Q3: Telegram 没有收到消息
+### Q3: 飞书没有收到消息
 
 ```bash
-# 检查 Token 是否正确
-cat ~/.openclaw/.env
+# 检查飞书配置
+openclaw config get channels.feishu
 
 # 检查 Gateway 日志
 openclaw gateway logs
@@ -503,7 +521,7 @@ openclaw gateway stop
 ## 系统架构图（供参考）
 
 ```
-用户 (Telegram)
+用户 (飞书)
     ↓
 OpenClaw Gateway
     ↓
@@ -523,31 +541,32 @@ Liaison Spark (联络官)
 
 ## 下一步（可选）
 
-### 添加飞书渠道
+### 添加 Discord 渠道
 
 ```bash
 # 编辑配置文件
 nano ~/.openclaw/openclaw.json
 
 # 在 channels 部分添加：
-"feishu": {
-  "appId": "你的飞书AppID",
-  "appSecret": "你的飞书AppSecret",
-  "enabled": true,
-  "connectionMode": "websocket"
-}
-```
-
-### 添加 Discord 渠道
-
-```bash
-# 在 .env 中添加
-DISCORD_TOKEN=你的Discord Token
-
-# 在 openclaw.json 的 channels 部分添加：
 "discord": {
   "token": "${DISCORD_TOKEN}",
   "dmPolicy": "pairing"
+}
+```
+
+### 添加 Telegram 渠道
+
+```bash
+# 编辑配置文件
+nano ~/.openclaw/openclaw.json
+
+# 在 channels 部分添加：
+"telegram": {
+  "botToken": "${TELEGRAM_BOT_TOKEN}",
+  "dmPolicy": "open",
+  "groups": {
+    "*": { "requireMention": false }
+  }
 }
 ```
 
@@ -714,11 +733,11 @@ const isStillActive = activeSessions.some(
 
 ---
 
-**部署完成！** 现在你可以在 Telegram 中与你的多 Agent 系统对话了。
+**部署完成！** 现在你可以在飞书中与你的多 Agent 系统对话了。
 
 **下一步建议**：
 
 1. 尝试发送不同类型的需求，观察路由效果
 2. 测试复杂任务（如"开发一个电商平台"），体验多 Agent 协作
 3. 根据实际需求调整 Agent 角色定义
-4. 添加飞书/Discord 渠道，支持更多用户入口
+4. 添加更多渠道（如 Discord、Telegram），支持更多用户入口
