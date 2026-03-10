@@ -220,21 +220,21 @@ ls -la "$HOME/.openclaw/agents/liaison-spark/workspace/"
 ### 方式一：使用命令行工具
 
 ```bash
-# 1. 配置 12 个 Agent
-openclaw config set agents.list '[
-  {"id": "liaison-spark", "name": "Liaison Spark", "description": "用户联络官", "workspace": "~/.openclaw/agents/liaison-spark/workspace"},
-  {"id": "commander-grove", "name": "Commander Grove", "description": "任务指挥官", "workspace": "~/.openclaw/agents/commander-grove/workspace", "subagents": {"allowAgents": ["ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach"]}},
-  {"id": "ceo-bezos", "name": "CEO Bezos", "description": "战略决策专家", "workspace": "~/.openclaw/agents/ceo-bezos/workspace"},
-  {"id": "cto-vogels", "name": "CTO Vogels", "description": "技术架构专家", "workspace": "~/.openclaw/agents/cto-vogels/workspace"},
-  {"id": "fullstack-dhh", "name": "FullStack DHH", "description": "全栈开发专家", "workspace": "~/.openclaw/agents/fullstack-dhh/workspace"},
-  {"id": "product-norman", "name": "Product Norman", "description": "产品设计专家", "workspace": "~/.openclaw/agents/product-norman/workspace"},
-  {"id": "ui-duarte", "name": "UI Duarte", "description": "UI 设计专家", "workspace": "~/.openclaw/agents/ui-duarte/workspace"},
-  {"id": "qa-bach", "name": "QA Bach", "description": "质量保证专家", "workspace": "~/.openclaw/agents/qa-bach/workspace"},
-  {"id": "marketing-godin", "name": "Marketing Godin", "description": "营销策略专家", "workspace": "~/.openclaw/agents/marketing-godin/workspace"},
-  {"id": "sales-ross", "name": "Sales Ross", "description": "销售策略专家", "workspace": "~/.openclaw/agents/sales-ross/workspace"},
-  {"id": "operations-pg", "name": "Operations PG", "description": "运营策略专家", "workspace": "~/.openclaw/agents/operations-pg/workspace"},
-  {"id": "interaction-cooper", "name": "Interaction Cooper", "description": "交互设计专家", "workspace": "~/.openclaw/agents/interaction-cooper/workspace"}
-]'
+# 1. 配置 12 个 Agent（使用 $HOME 环境变量确保路径正确）
+openclaw config set agents.list "[
+  {\"id\": \"liaison-spark\", \"name\": \"Liaison Spark\", \"description\": \"用户联络官\", \"workspace\": \"$HOME/.openclaw/agents/liaison-spark/workspace\"},
+  {\"id\": \"commander-grove\", \"name\": \"Commander Grove\", \"description\": \"任务指挥官\", \"workspace\": \"$HOME/.openclaw/agents/commander-grove/workspace\", \"subagents\": {\"allowAgents\": [\"ceo-bezos\", \"cto-vogels\", \"fullstack-dhh\", \"product-norman\", \"ui-duarte\", \"qa-bach\"]}},
+  {\"id\": \"ceo-bezos\", \"name\": \"CEO Bezos\", \"description\": \"战略决策专家\", \"workspace\": \"$HOME/.openclaw/agents/ceo-bezos/workspace\"},
+  {\"id\": \"cto-vogels\", \"name\": \"CTO Vogels\", \"description\": \"技术架构专家\", \"workspace\": \"$HOME/.openclaw/agents/cto-vogels/workspace\"},
+  {\"id\": \"fullstack-dhh\", \"name\": \"FullStack DHH\", \"description\": \"全栈开发专家\", \"workspace\": \"$HOME/.openclaw/agents/fullstack-dhh/workspace\"},
+  {\"id\": \"product-norman\", \"name\": \"Product Norman\", \"description\": \"产品设计专家\", \"workspace\": \"$HOME/.openclaw/agents/product-norman/workspace\"},
+  {\"id\": \"ui-duarte\", \"name\": \"UI Duarte\", \"description\": \"UI 设计专家\", \"workspace\": \"$HOME/.openclaw/agents/ui-duarte/workspace\"},
+  {\"id\": \"qa-bach\", \"name\": \"QA Bach\", \"description\": \"质量保证专家\", \"workspace\": \"$HOME/.openclaw/agents/qa-bach/workspace\"},
+  {\"id\": \"marketing-godin\", \"name\": \"Marketing Godin\", \"description\": \"营销策略专家\", \"workspace\": \"$HOME/.openclaw/agents/marketing-godin/workspace\"},
+  {\"id\": \"sales-ross\", \"name\": \"Sales Ross\", \"description\": \"销售策略专家\", \"workspace\": \"$HOME/.openclaw/agents/sales-ross/workspace\"},
+  {\"id\": \"operations-pg\", \"name\": \"Operations PG\", \"description\": \"运营策略专家\", \"workspace\": \"$HOME/.openclaw/agents/operations-pg/workspace\"},
+  {\"id\": \"interaction-cooper\", \"name\": \"Interaction Cooper\", \"description\": \"交互设计专家\", \"workspace\": \"$HOME/.openclaw/agents/interaction-cooper/workspace\"}
+]"
 
 # 2. 配置飞书渠道
 openclaw config set channels.feishu.appId "${FEISHU_APP_ID}"
@@ -246,7 +246,10 @@ openclaw config set channels.feishu.connectionMode "websocket"
 openclaw config set tools.agentToAgent.enabled true
 openclaw config set tools.agentToAgent.allow '["liaison-spark", "commander-grove", "ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach", "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"]'
 
-# 4. 启动 Gateway
+# 4. 配置默认路由（所有用户消息默认由 liaison-spark 处理）
+openclaw config set agents.default "liaison-spark"
+
+# 5. 启动 Gateway
 openclaw gateway start
 ```
 
@@ -260,7 +263,7 @@ cp "$HOME/.openclaw/openclaw.json" "$HOME/.openclaw/openclaw.json.backup"
 nano "$HOME/.openclaw/openclaw.json"
 ```
 
-**在原有配置基础上，添加以下内容**：
+**在原有配置基础上，添加以下内容**（注意：将 `/home/your-username` 替换为你实际的家目录路径，macOS 用户通常是 `/Users/你的用户名`）：
 
 ```json
 {
@@ -270,13 +273,13 @@ nano "$HOME/.openclaw/openclaw.json"
         "id": "liaison-spark",
         "name": "Liaison Spark",
         "description": "用户联络官",
-        "workspace": "~/.openclaw/agents/liaison-spark/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/liaison-spark/workspace"
       },
       {
         "id": "commander-grove",
         "name": "Commander Grove",
         "description": "任务指挥官",
-        "workspace": "~/.openclaw/agents/commander-grove/workspace",
+        "workspace": "/home/your-username/.openclaw/agents/commander-grove/workspace",
         "subagents": {
           "allowAgents": ["ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach"]
         }
@@ -285,61 +288,61 @@ nano "$HOME/.openclaw/openclaw.json"
         "id": "ceo-bezos",
         "name": "CEO Bezos",
         "description": "战略决策专家",
-        "workspace": "~/.openclaw/agents/ceo-bezos/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/ceo-bezos/workspace"
       },
       {
         "id": "cto-vogels",
         "name": "CTO Vogels",
         "description": "技术架构专家",
-        "workspace": "~/.openclaw/agents/cto-vogels/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/cto-vogels/workspace"
       },
       {
         "id": "fullstack-dhh",
         "name": "FullStack DHH",
         "description": "全栈开发专家",
-        "workspace": "~/.openclaw/agents/fullstack-dhh/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/fullstack-dhh/workspace"
       },
       {
         "id": "product-norman",
         "name": "Product Norman",
         "description": "产品设计专家",
-        "workspace": "~/.openclaw/agents/product-norman/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/product-norman/workspace"
       },
       {
         "id": "ui-duarte",
         "name": "UI Duarte",
         "description": "UI 设计专家",
-        "workspace": "~/.openclaw/agents/ui-duarte/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/ui-duarte/workspace"
       },
       {
         "id": "qa-bach",
         "name": "QA Bach",
         "description": "质量保证专家",
-        "workspace": "~/.openclaw/agents/qa-bach/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/qa-bach/workspace"
       },
       {
         "id": "marketing-godin",
         "name": "Marketing Godin",
         "description": "营销策略专家",
-        "workspace": "~/.openclaw/agents/marketing-godin/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/marketing-godin/workspace"
       },
       {
         "id": "sales-ross",
         "name": "Sales Ross",
         "description": "销售策略专家",
-        "workspace": "~/.openclaw/agents/sales-ross/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/sales-ross/workspace"
       },
       {
         "id": "operations-pg",
         "name": "Operations PG",
         "description": "运营策略专家",
-        "workspace": "~/.openclaw/agents/operations-pg/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/operations-pg/workspace"
       },
       {
         "id": "interaction-cooper",
         "name": "Interaction Cooper",
         "description": "交互设计专家",
-        "workspace": "~/.openclaw/agents/interaction-cooper/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/interaction-cooper/workspace"
       }
     ]
   },
@@ -362,6 +365,10 @@ nano "$HOME/.openclaw/openclaw.json"
         "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"
       ]
     }
+  },
+
+  "agents": {
+    "default": "liaison-spark"
   }
 }
 ```
