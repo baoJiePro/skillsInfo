@@ -147,8 +147,15 @@ Commander (统筹汇总)
 cat > init-agents.sh << 'EOF'
 #!/bin/bash
 
-# 进入 OpenClaw 配置目录
-cd "$HOME/.openclaw"
+# OpenClaw 配置目录
+OPENCLAW_DIR="$HOME/.openclaw"
+
+# 检查目录是否存在
+if [ ! -d "$OPENCLAW_DIR" ]; then
+  echo "❌ 错误：找不到 $OPENCLAW_DIR 目录"
+  echo "   请先运行 'openclaw onboard' 完成初始化"
+  exit 1
+fi
 
 # 定义 Agent 列表
 AGENTS=(
@@ -200,7 +207,7 @@ echo "   使用 agentsInfo 目录: $AGENTS_INFO_DIR"
 
 for agent in "${AGENTS[@]}"; do
   if [ -f "$AGENTS_INFO_DIR/${agent}.md" ]; then
-    cp "$AGENTS_INFO_DIR/${agent}.md" "$HOME/.openclaw/agents/$agent/workspace/SOUL.md"
+    cp "$AGENTS_INFO_DIR/${agent}.md" "$OPENCLAW_DIR/agents/$agent/workspace/SOUL.md"
     echo "✅ 复制: ${agent}.md -> SOUL.md"
   else
     echo "⚠️  未找到: agentsInfo/${agent}.md"
