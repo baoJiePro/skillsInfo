@@ -176,7 +176,7 @@ AGENTS=(
 # 创建目录结构
 echo "🚀 开始创建 Agent 目录结构..."
 for agent in "${AGENTS[@]}"; do
-  mkdir -p agents/$agent/{agent,sessions,workspace}
+  mkdir -p "$OPENCLAW_DIR/agents/$agent"/{agent,sessions,workspace}
   echo "✅ 创建目录: agents/$agent"
 done
 
@@ -218,8 +218,8 @@ echo ""
 echo "🎉 Agent 环境初始化完成！"
 echo ""
 echo "验证命令："
-echo "  ls -la $HOME/.openclaw/agents/"
-echo "  ls -la $HOME/.openclaw/agents/liaison-spark/workspace/"
+echo "  ls -la $OPENCLAW_DIR/agents/"
+echo "  ls -la $OPENCLAW_DIR/agents/liaison-spark/workspace/"
 EOF
 
 # 添加执行权限
