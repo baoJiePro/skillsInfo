@@ -236,21 +236,12 @@ openclaw config set agents.list "[
   {\"id\": \"interaction-cooper\", \"name\": \"Interaction Cooper\", \"description\": \"交互设计专家\", \"workspace\": \"$HOME/.openclaw/agents/interaction-cooper/workspace\"}
 ]"
 
-# 2. 配置飞书渠道
-openclaw config set channels.feishu.appId "${FEISHU_APP_ID}"
-openclaw config set channels.feishu.appSecret "${FEISHU_APP_SECRET}"
-openclaw config set channels.feishu.enabled true
-openclaw config set channels.feishu.connectionMode "websocket"
-
-# 3. 启用 Agent 间通信
+# 2. 启用 Agent 间通信
 openclaw config set tools.agentToAgent.enabled true
 openclaw config set tools.agentToAgent.allow '["liaison-spark", "commander-grove", "ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach", "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"]'
 
-# 4. 配置默认路由（所有用户消息默认由 liaison-spark 处理）
-openclaw config set agents.default "liaison-spark"
-
-# 5. 启动 Gateway
-openclaw gateway start
+# 3. 启动 Gateway
+openclaw gateway restart
 ```
 
 ### 方式二：编辑配置文件
@@ -365,10 +356,6 @@ nano "$HOME/.openclaw/openclaw.json"
         "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"
       ]
     }
-  },
-
-  "agents": {
-    "default": "liaison-spark"
   }
 }
 ```
