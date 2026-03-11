@@ -250,7 +250,7 @@ ls -la "$HOME/.openclaw/agents/liaison-spark/workspace/"
 ```bash
 # 1. 配置 12 个 Agent（使用 $HOME 环境变量确保路径正确）
 openclaw config set agents.list "[
-  {\"id\": \"liaison-spark\", \"name\": \"Liaison Spark\", \"workspace\": \"$HOME/.openclaw/agents/liaison-spark/workspace\"},
+  {\"id\": \"liaison-spark\", \"name\": \"Liaison Spark\", \"workspace\": \"$HOME/.openclaw/agents/liaison-spark/workspace\", \"subagents\": {\"allowAgents\": [\"commander-grove\", \"ceo-bezos\", \"cto-vogels\", \"fullstack-dhh\", \"product-norman\", \"ui-duarte\", \"qa-bach\", \"marketing-godin\", \"sales-ross\", \"operations-pg\", \"interaction-cooper\"]}},
   {\"id\": \"commander-grove\", \"name\": \"Commander Grove\", \"workspace\": \"$HOME/.openclaw/agents/commander-grove/workspace\", \"subagents\": {\"allowAgents\": [\"ceo-bezos\", \"cto-vogels\", \"fullstack-dhh\", \"product-norman\", \"ui-duarte\", \"qa-bach\"]}},
   {\"id\": \"ceo-bezos\", \"name\": \"CEO Bezos\", \"workspace\": \"$HOME/.openclaw/agents/ceo-bezos/workspace\"},
   {\"id\": \"cto-vogels\", \"name\": \"CTO Vogels\", \"workspace\": \"$HOME/.openclaw/agents/cto-vogels/workspace\"},
@@ -268,7 +268,10 @@ openclaw config set agents.list "[
 openclaw config set tools.agentToAgent.enabled true
 openclaw config set tools.agentToAgent.allow '["liaison-spark", "commander-grove", "ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach", "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"]'
 
-# 3. 启动 Gateway
+# 3. 配置飞书渠道绑定（所有飞书消息路由给 liaison-spark）
+openclaw config set bindings '[{"agentId": "liaison-spark", "match": {"channel": "feishu"}}]'
+
+# 4. 启动 Gateway
 openclaw gateway restart
 ```
 
@@ -291,7 +294,10 @@ nano "$HOME/.openclaw/openclaw.json"
       {
         "id": "liaison-spark",
         "name": "Liaison Spark",
-        "workspace": "/home/your-username/.openclaw/agents/liaison-spark/workspace"
+        "workspace": "/home/your-username/.openclaw/agents/liaison-spark/workspace",
+        "subagents": {
+          "allowAgents": ["commander-grove", "ceo-bezos", "cto-vogels", "fullstack-dhh", "product-norman", "ui-duarte", "qa-bach", "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"]
+        }
       },
       {
         "id": "commander-grove",
@@ -372,7 +378,16 @@ nano "$HOME/.openclaw/openclaw.json"
         "marketing-godin", "sales-ross", "operations-pg", "interaction-cooper"
       ]
     }
-  }
+  },
+
+  "bindings": [
+    {
+      "agentId": "liaison-spark",
+      "match": {
+        "channel": "feishu"
+      }
+    }
+  ]
 }
 ```
 
